@@ -1,0 +1,107 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  Framework */
+Framework:
+    actors*=Actor
+    (before_all=BeforeAll)?
+    (before=Before)?
+    tests*=Test
+    (after=After)?
+    (after_all=AfterAll)?;
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  Actors */
+Actor:
+    'Actor' name=ID path=/[^\s\\+-]*(-[^\s\\+-]*)*/'+'class_name=/[^\s\\+-]*/ ('{'
+        attributes+=Attribute
+    '}')?
+;
+
+Attribute:
+    'Attribute' name=ID (':' value=Value)?
+;
+
+AttributeReference:
+    actor=[Actor]'['attribute=[Attribute]']'
+;
+
+Value:
+    STRING | INT | FLOAT | BOOL | 'nil'
+;
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  Tests */
+BeforeAll:
+    'BeforeAll {'
+        ba_steps*=Step
+    '}'
+;
+
+Before:
+    'Before {'
+        b_blocks*=BeforeBlock
+    '}'
+;
+
+BeforeBlock:
+    name=ID '{'
+        b_steps*=Step
+    '}'
+;
+
+Test:
+    'Test' name=ID '{'
+        ('Before {'
+            befores*=[BeforeBlock]
+        '}')?
+
+        ('Execute' '{'
+            e_steps*=Step
+        '}')?
+
+        ('After {'
+            afters*=[AfterBlock]
+        '}')?
+    '}'
+;
+
+After:
+    'After {'
+        a_blocks*=AfterBlock
+    '}'
+;
+
+AfterBlock:
+    name=ID '{'
+        a_steps*=Step
+    '}'
+;
+
+AfterAll:
+    'AfterAll {'
+        aa_steps*=Step
+    '}'
+;
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  Steps */
+Step:
+    AssignStep | CallStep | AssertStep | TimeStep
+;
+
+AssertStep:
+    'Assert' attributeReference=AttributeReference '==' value=Value
+;
+AssignStep:
+    attributeReference=AttributeReference '=' value=Value
+;
+CallStep:
+    actor=[Actor]'.'method=ID'('(parameters*=Parameter)?')'
+;
+TimeStep:
+    'Sleep' '('delay=INT')'
+;
+
+Parameter:
+    actor=[Actor] | value=Value
+;
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * Comments */
+Comment:
+    /\/\/.*$/
+;

@@ -1,0 +1,25 @@
+// Actor definitions
+Actor PersonalAccount project-Account+Account {
+    Attribute allowNegBalance
+    Attribute balance
+    Attribute firstName
+}
+
+Actor CompanyAccount project-Account+Account {
+    Attribute balance
+}
+
+// Assert that if negative balance is allowed, balance can be less than zero
+Test allowNegativeBalance {
+    Execute {
+        PersonalAccount[allowNegBalance] = True
+        PersonalAccount[balance] = 20
+        CompanyAccount[balance] = 600
+
+        PersonalAccount.Transfer(CompanyAccount 40)
+        Assert PersonalAccount[ALLOW_NEG_BALANCE] == False // undefined attribute
+        Sleep(1000)
+        Assert PersonalAccount[balance] == -20
+        Assert CompanyAccount[balance] == 640
+    }
+}

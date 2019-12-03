@@ -1,0 +1,1 @@
+from dsl.metamodel import get_metamodel
