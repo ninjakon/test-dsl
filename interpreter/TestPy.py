@@ -1,7 +1,4 @@
-import os
 import time
-
-from dsl.metamodel import get_metamodel
 
 
 class TText:
@@ -268,19 +265,3 @@ class TestSuite:
                color + ' == ' + TText.BOLD + '{} ' + TText.ENDC + \
                color + infix + TText.BOLD + ' {}' + TText.ENDC + \
                color + suffix + TText.ENDC
-
-
-if __name__ == '__main__':
-    meta = get_metamodel()
-    model = meta.model_from_file(os.getcwd() + '/test/models/model_big.test')
-
-    test_suite = TestSuite(verbose=False)
-    test_suite.interpret(model)
-    print(test_suite)
-
-    # single test
-    test_suite.run_test('databaseQueries')
-    print(test_suite)
-    # all tests
-    test_suite.run_all()
-    print(test_suite)
