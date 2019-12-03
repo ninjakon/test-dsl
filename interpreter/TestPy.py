@@ -82,19 +82,23 @@ class TestSuite:
             self.actor_definitions[actor.name] = (actor_class, actor.attributes)
 
         # register before all steps
-        self.before_alls = model.before_all.ba_steps
+        if model.before_all:
+            self.before_alls = model.before_all.ba_steps
 
         # register before blocks
-        self.befores = {b_block.name: b_block.b_steps for b_block in model.before.b_blocks}
+        if model.before:
+            self.befores = {b_block.name: b_block.b_steps for b_block in model.before.b_blocks}
 
         # register tests
         self.tests = {test.name: test for test in model.tests}
 
         # register after blocks
-        self.afters = {a_block.name: a_block.a_steps for a_block in model.after.a_blocks}
+        if model.after:
+            self.afters = {a_block.name: a_block.a_steps for a_block in model.after.a_blocks}
 
         # register after all steps
-        self.after_alls = model.after_all.aa_steps
+        if model.after_all:
+            self.after_alls = model.after_all.aa_steps
 
     def run_all(self):
         self.setup_testing()

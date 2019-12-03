@@ -5,7 +5,7 @@ from interpreter.TestPy import TestSuite
 
 if __name__ == '__main__':
     meta = get_metamodel()
-    model = meta.model_from_file(os.getcwd() + '/test/models/model_big.test')
+    model = meta.model_from_file(os.getcwd() + '/dsl/test/models/model_big.test')
 
     test_suite = TestSuite(verbose=False)
     test_suite.interpret(model)

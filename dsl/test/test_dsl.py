@@ -1,7 +1,8 @@
-from dsl import get_metamodel
 from os.path import dirname, join
 from textx import get_children_of_type, TextXSemanticError
 from pytest import raises
+
+from dsl import get_metamodel
 
 
 def test_validation_big():
