@@ -1,14 +1,6 @@
 import time
 
-
-class TText:
-    INFO = '\033[94m'
-    OK = '\033[92m'
-    WARN = '\033[93m'
-    FAIL = '\033[91m'
-    BOLD = '\033[1m'
-    UL = '\033[4m'
-    ENDC = '\033[0m'
+from interpreter.TText import TText
 
 
 class TestSuite:
@@ -45,18 +37,18 @@ class TestSuite:
         report = TText.INFO + 'Processed {} Tests:\n'.format(tt_count) + TText.ENDC
         if ba_count > 0:
             report += '> ' + \
-                TText.FAIL + 'BeforeAll failed!\n' + TText.ENDC
+                      TText.FAIL + 'BeforeAll failed!\n' + TText.ENDC
             for msg in self.test_report['BA']:
                 report += '> ' + ' ' * 8 + msg[0] + '\n'
                 report += '> ' + ' ' * 8 + msg[1] + '\n'
         if st_count > 0:
             report += '> ' + \
-                TText.OK + 'Tests passed: ' + TText.BOLD + '{}/{}'.format(st_count, tt_count) + TText.ENDC + \
-                TText.OK + ' tests.\n'.format(ft_count, tt_count) + TText.ENDC
+                      TText.OK + 'Tests passed: ' + TText.BOLD + '{}/{}'.format(st_count, tt_count) + TText.ENDC + \
+                      TText.OK + ' tests.\n'.format(ft_count, tt_count) + TText.ENDC
         if ft_count > 0:
             report += '> ' + \
-                TText.FAIL + 'Tests failed: ' + TText.BOLD + '{}/{}'.format(ft_count, tt_count) + TText.ENDC + \
-                TText.FAIL + ' tests!\n'.format(ft_count, tt_count) + TText.ENDC
+                      TText.FAIL + 'Tests failed: ' + TText.BOLD + '{}/{}'.format(ft_count, tt_count) + TText.ENDC + \
+                      TText.FAIL + ' tests!\n'.format(ft_count, tt_count) + TText.ENDC
             for test, msgs in self.test_report['FT']:
                 report += '> ' + ' ' * 4 + TText.FAIL + test + '\n' + TText.ENDC
                 for msg in msgs:
@@ -64,7 +56,7 @@ class TestSuite:
                     report += '> ' + ' ' * 8 + msg[1] + '\n'
         if aa_count > 0:
             report += '> ' + \
-                TText.FAIL + 'AfterAll failed!\n' + TText.ENDC
+                      TText.FAIL + 'AfterAll failed!\n' + TText.ENDC
             for msg in self.test_report['AA']:
                 report += '> ' + ' ' * 8 + msg[0] + '\n'
                 report += '> ' + ' ' * 8 + msg[1] + '\n'

@@ -1,3 +1,7 @@
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 class Database {
     constructor() {
         this.driver = '';
@@ -9,14 +13,14 @@ class Database {
         }
     }
 
-    connect() {
-        time.sleep(0.5);
-        this.connected = True;
+    async connect() {
+        await sleep(500);
+        this.connected = true;
     }
 
-    disconnect() {
-        time.sleep(0.5);
-        this.connected = False;
+    async disconnect() {
+        await sleep(500);
+        this.connected = false;
     }
 
     get_account_by_id(id) {
