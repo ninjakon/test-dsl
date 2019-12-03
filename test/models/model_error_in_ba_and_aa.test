@@ -4,11 +4,17 @@ Actor DB project-Database+Database {
 }
 
 BeforeAll {
-    Assert DB[connected] == True
+    Assert DB[connected] == True    // This is wrong!
     DB.connect()
     Sleep(1000)
 }
 
 Test empty {
 
+}
+
+AfterAll {
+    DB.disconnect()
+    Sleep(1000)
+    Assert DB[connected] == True    // This is also wrong!
 }

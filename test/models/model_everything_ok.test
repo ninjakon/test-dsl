@@ -1,0 +1,78 @@
+// Actor definitions
+Actor PersonalAccount project-Account+Account {
+    Attribute allowNegBalance
+    Attribute balance
+    Attribute firstName
+}
+
+Actor CompanyAccount project-Account+Account {
+    Attribute balance
+}
+
+Actor DB project-Database+Database {
+    Attribute driver : "h2:mem:test"
+    Attribute connected : False
+}
+
+// Open database connection before running tests
+BeforeAll {
+    Assert DB[connected] == False
+    DB.connect()
+    Sleep(1000)
+}
+
+Before {
+    // Fill personal account with dummy data
+    InitPersonalAccount {
+        PersonalAccount[allowNegBalance] = True
+        PersonalAccount[balance] = 20
+    }
+}
+
+// Assert basic database queries work
+Test databaseQueries {
+    Execute {
+        PersonalAccount.loadFromDB(DB 1)
+        Assert PersonalAccount[allowNegBalance] == False
+        Assert PersonalAccount[balance] == 500
+        Assert PersonalAccount[firstName] == "Alice"
+    }
+
+    After {
+        AssertDBConnection
+    }
+}
+
+// Assert that if negative balance is allowed, balance can be less than zero
+Test allowNegativeBalance {
+    Before {
+        InitPersonalAccount
+    }
+
+    Execute {
+        CompanyAccount[balance] = 600
+        PersonalAccount.Transfer(CompanyAccount 40)
+        Assert PersonalAccount[allowNegBalance] == True
+        Sleep(1000)
+        Assert PersonalAccount[balance] == -20
+        Assert CompanyAccount[balance] == 640
+    }
+}
+
+Test empty {
+
+}
+
+After {
+    // Check database connection
+    AssertDBConnection {
+        Assert DB[connected] == True
+    }
+}
+
+// Close database connection after tests
+AfterAll {
+    DB.disconnect()
+    Sleep(1000)
+    Assert DB[connected] == False
+}

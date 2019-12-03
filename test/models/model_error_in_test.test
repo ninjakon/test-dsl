@@ -1,0 +1,31 @@
+Actor PersonalAccount project-Account+Account {
+    Attribute allowNegBalance
+    Attribute balance
+    Attribute firstName
+}
+
+Actor CompanyAccount project-Account+Account {
+    Attribute balance
+}
+
+Before {
+    InitPersonalAccount {
+        PersonalAccount[allowNegBalance] = True
+        PersonalAccount[balance] = 20
+    }
+}
+
+Test allowNegativeBalance {
+    Before {
+        InitPersonalAccount
+    }
+
+    Execute {
+        CompanyAccount[balance] = 600
+        PersonalAccount.Transfer(CompanyAccount 40)
+        Assert PersonalAccount[allowNegBalance] == True
+        Sleep(1000)
+        Assert PersonalAccount[balance] == -30              // This is wrong!
+        Assert CompanyAccount[balance] == 640
+    }
+}
