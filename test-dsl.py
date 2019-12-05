@@ -44,7 +44,7 @@ def run(argv):
     ts = TestSuiteJs(verbose=True)
     ts.interpret(model)
     ts.run_all()
-
+'''
     # register test suite
     test_suite = TestSuitePy(verbose=verbose)
     test_suite.interpret(model)
@@ -59,6 +59,7 @@ def run(argv):
     if run_all:
         test_suite.run_all()
         print(test_suite)
+'''
 
 
 if __name__ == '__main__':
