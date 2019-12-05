@@ -40,7 +40,7 @@ def run(argv):
     meta = get_metamodel()
     model = meta.model_from_file(test_suite_file)
 
-    ts = TestSuiteJs(verbose=True)
+    ts = TestSuiteJs('./interpreter/javascript/TestHelper.js', verbose=True)
     ts.interpret(model)
     ts.run_all()
 '''

@@ -36,9 +36,13 @@ def stringify_step(step):
 
 
 class TestSuiteJs(TestSuite):
+    def __init__(self, helper_path, verbose=False):
+        super().__init__(verbose)
+        self.helper_path = helper_path
+
     def run_all(self):
         response = muterun_js(
-            'interpreter/javascript/TestHelper.js',
+            self.helper_path,
             '"' + json.dumps(self.actor_definitions) + '"' + ' '
             '"' + json.dumps(self.before_alls) + '"' + ' ' +
             '"' + json.dumps(self.befores) + '"' + ' ' +

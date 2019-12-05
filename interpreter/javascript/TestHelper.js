@@ -24,6 +24,10 @@ const tText = {
     ENDC: '\033[0m'
 };
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 /* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  * Output Variables */
 var log = '';
 var test_report = {};
@@ -90,7 +94,7 @@ function process_call_step(args) {
 }
 
 async function process_time_step(args) {
-
+    await sleep(args[0]);
 }
 
 /*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *Assertions */
