@@ -10,16 +10,14 @@ console.log(actor_definitions);
 console.log(tests);
 
 // load actors
-var actor_classes = {};
+var actors = {};
 for (var actor_name in actor_definitions) {
-    var module = actor_definitions[actor_name][0][0];
-    var class_name = actor_definitions[actor_name][0][1];
-    if (!(class_name in actor_classes)) {
-        actor_classes[class_name] = require(module);
-    }
+    var module = actor_definitions[actor_name][0];
+    const actor_class = require(module);
+    actors[actor_name] = new actor_class();
 }
 
-console.log(actor_classes);
+console.log(actors);
 
 // run tests
 

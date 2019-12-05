@@ -50,10 +50,8 @@ class TestSuiteJs(TestSuite):
         for actor in model.actors:
             module = actor.path.replace('-', '/')
             actor_class = '../' + module + '.js'
-            class_name = actor.class_name
             self.actor_definitions[stringify(actor.name)] = \
-                ((stringify(actor_class), stringify(class_name)),
-                 [(stringify(a.name), stringify(a.value)) for a in actor.attributes])
+                (stringify(actor_class), [(stringify(a.name), stringify(a.value)) for a in actor.attributes])
 
     def set_before_alls(self, model):
         pass
