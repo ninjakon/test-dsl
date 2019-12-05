@@ -167,9 +167,9 @@ class TestSuitePy(TestSuite):
             actor_class = getattr(module, actor.class_name)
             self.actor_definitions[actor.name] = (actor_class, actor.attributes)
 
-    def set_before_alls(self, model):
+    def set_before_all(self, model):
         self.before_alls = model.before_all.ba_steps
-    
+
     def set_befores(self, model):
         self.befores = {b_block.name: b_block.b_steps for b_block in model.before.b_blocks}
 
@@ -178,6 +178,6 @@ class TestSuitePy(TestSuite):
 
     def set_afters(self, model):
         self.afters = {a_block.name: a_block.a_steps for a_block in model.after.a_blocks}
-    
-    def set_after_alls(self, model):
+
+    def set_after_all(self, model):
         self.after_alls = model.after_all.aa_steps

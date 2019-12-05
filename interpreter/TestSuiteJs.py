@@ -28,7 +28,7 @@ def stringify_step(step):
         step_vars.append(stringify(step.value))
     elif step_type == 'TimeStep':
         step_vars.append(step.delay)
-    return [ stringify(step_type), step_vars ]
+    return [stringify(step_type), step_vars]
 
 
 class TestSuiteJs(TestSuite):
@@ -36,7 +36,9 @@ class TestSuiteJs(TestSuite):
         response = muterun_js(
             'interpreter/TestHelper.js',
             '"' + json.dumps(self.actor_definitions) + '"' + ' '
+            '"' + json.dumps(self.before_alls) + '"' + ' ' +
             '"' + json.dumps(self.tests) + '"' + ' ' +
+            '"' + json.dumps(self.after_alls) + '"' + ' ' +
             '"' + str(self.verbose) + '"'
         )
         if response.exitcode == 0:
@@ -54,8 +56,8 @@ class TestSuiteJs(TestSuite):
             self.actor_definitions[stringify(actor.name)] = \
                 (stringify(actor_class), [(stringify(a.name), stringify(a.value)) for a in actor.attributes])
 
-    def set_before_alls(self, model):
-        pass
+    def set_before_all(self, model):
+        self.before_alls = [stringify_step(s) for s in model.before_all.ba_steps]
 
     def set_befores(self, model):
         pass
@@ -63,14 +65,14 @@ class TestSuiteJs(TestSuite):
     def set_tests(self, model):
         self.tests = {
             stringify(test.name): [
-                [ stringify(b.name) for b in test.befores ],
-                [ stringify_step(s) for s in test.e_steps ],
-                [ stringify(a.name) for a in test.afters ],
+                [stringify(b.name) for b in test.befores],
+                [stringify_step(s) for s in test.e_steps],
+                [stringify(a.name) for a in test.afters],
             ] for test in model.tests
         }
 
     def set_afters(self, model):
         pass
 
-    def set_after_alls(self, model):
-        pass
+    def set_after_all(self, model):
+        self.after_alls = [stringify_step(s) for s in model.after_all.aa_steps]

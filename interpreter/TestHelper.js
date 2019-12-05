@@ -1,13 +1,15 @@
 const argType = {
     actor_definitions: 2,
-    tests: 3,
-    verbose: 4
+    before_all: 3,
+    tests: 4,
+    after_all: 5,
+    verbose: 6
 };
 
 const testBlock = {
-  before: 0,
-  execute: 1,
-  after: 2
+    before: 0,
+    execute: 1,
+    after: 2
 };
 
 const tText = {
@@ -20,14 +22,76 @@ const tText = {
     ENDC: '\033[0m'
 };
 
-/**
- * Output variables.
- */
+/* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  * Output Variables */
 var log = '';
-var test_report = {
+var test_report = {};
 
-};
+/* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  Step Processing */
+function process_steps(steps) {
+    for (var i = 0; i < steps.length; i++) {
+        step = steps[i];
+        type = step[0];
+        args = step[1];
+        process_step(type, args);
+    }
+}
 
+function process_step(type, args) {
+    switch (type) {
+        case 'AssertStep':
+            process_assert_step(args);
+            break;
+        case 'AssignStep':
+            process_assign_step(args);
+            break;
+        case 'CallStep':
+            process_call_step(args);
+            break;
+        case 'TimeStep':
+            process_time_step(args);
+            break;
+    }
+}
+
+/* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  * Specified Step Processing */
+function process_assert_step(step) {
+    actor_name = args[0];
+    actor = actors[actor_name];
+    attribute = args[1];
+    expected_value = args[2];
+    actual_value = actor[attribute];
+
+    is_ok = actual_value === expected_value;
+    message = style_assertion(is_ok, actor_name, attribute, expected_value, actual_value)
+    if (verbose) {
+        log += message;
+    }
+}
+
+function process_assign_step(args) {
+    actor = actors[args[0]];
+    attribute = args[1];
+    value = args[2];
+    actor[attribute] = value;
+}
+
+function process_call_step(args) {
+    actor = actors[args[0]];
+    method = args[1];
+    params = [];
+    for (var j = 0; j < args[2].length; j++) {
+        is_actor = args[2][j][0];
+        param = args[2][j][1];
+        is_actor ? params.push(actors[param]) : params.push(param);
+    }
+    actor[method](...params);
+}
+
+async function process_time_step(args) {
+
+}
+
+/*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *Assertions */
 function style_assertion(is_ok, actor_name, attribute, expected_value, actual_value) {
     if (is_ok) {
         prefix = tText.OK + 'Assertion OK: ' + tText.ENDC;
@@ -47,16 +111,14 @@ function style_assertion(is_ok, actor_name, attribute, expected_value, actual_va
         color + suffix + tText.ENDC + '\n'
 }
 
-/**
- * Get arguments for testing.
- */
+/*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  Testing Arguments */
 var actor_definitions = JSON.parse(process.argv[argType.actor_definitions]);
+var before_all = JSON.parse(process.argv[argType.before_all]);
 var tests = JSON.parse(process.argv[argType.tests]);
+var after_all = JSON.parse(process.argv[argType.after_all]);
 var verbose = process.argv[argType.verbose] === 'True';
 
-/**
- * Load actors by specifying modules, instantiating classes and setting attributes.
- */
+// Load actors by specifying modules, instantiating classes and setting attributes.
 var actors = {};
 for (var actor_name in actor_definitions) {
     // instantiate classes
@@ -73,53 +135,20 @@ for (var actor_name in actor_definitions) {
     }
 }
 
-/**
- * Run tests.
- */
+// Run before all.
+process_steps(before_all);
+
+// Run tests.
 for (var test_name in tests) {
     log += 'Running ' + test_name + '\n';
+
+    // run test
     var steps = tests[test_name][testBlock.execute];
-    for (var i = 0; i < steps.length; i++) {
-        step = steps[i];
-        type = step[0];
-        args = step[1];
-
-        switch (type) {
-            case 'AssertStep':
-                actor_name = args[0];
-                actor = actors[actor_name];
-                attribute = args[1];
-                expected_value = args[2];
-                actual_value = actor[attribute];
-
-                is_ok = actual_value === expected_value;
-                message = style_assertion(is_ok, actor_name, attribute, expected_value, actual_value)
-                if (verbose) {
-                    log += message;
-                }
-                break;
-            case 'AssignStep':
-                actor = actors[args[0]];
-                attribute = args[1];
-                value = args[2];
-                actor[attribute] = value;
-                break;
-            case 'CallStep':
-                actor = actors[args[0]];
-                method = args[1];
-                params = [];
-                for (var j = 0; j < args[2].length; j++) {
-                    is_actor = args[2][j][0];
-                    param = args[2][j][1];
-                    is_actor ? params.push(actors[param]) : params.push(param);
-                }
-                actor[method](...params);
-                break;
-            case 'TimeStep':
-                // await sleep(500);
-                break;
-        }
-    }
+    process_steps(steps);
 }
 
+// Run after all.
+process_steps(after_all);
+
+// Output
 console.log(log);

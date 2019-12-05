@@ -71,7 +71,7 @@ class TestSuite(ABC):
 
         # register before all steps
         if model.before_all:
-            self.set_before_alls(model)
+            self.set_before_all(model)
 
         # register before blocks
         if model.before:
@@ -86,7 +86,7 @@ class TestSuite(ABC):
 
         # register after all steps
         if model.after_all:
-            self.set_after_alls(model)
+            self.set_after_all(model)
 
     @abstractmethod
     def run_all(self):
@@ -105,7 +105,7 @@ class TestSuite(ABC):
         pass
 
     @abstractmethod
-    def set_before_alls(self, model):
+    def set_before_all(self, model):
         pass
 
     @abstractmethod
@@ -121,7 +121,7 @@ class TestSuite(ABC):
         pass
 
     @abstractmethod
-    def set_after_alls(self, model):
+    def set_after_all(self, model):
         pass
 
     @staticmethod
