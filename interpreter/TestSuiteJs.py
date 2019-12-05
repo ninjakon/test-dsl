@@ -36,7 +36,8 @@ class TestSuiteJs(TestSuite):
         response = muterun_js(
             'interpreter/TestHelper.js',
             '"' + json.dumps(self.actor_definitions) + '"' + ' '
-            '"' + json.dumps(self.tests) + '"'
+            '"' + json.dumps(self.tests) + '"' + ' ' +
+            '"' + str(self.verbose) + '"'
         )
         if response.exitcode == 0:
             print(response.stdout.decode("utf-8"))
