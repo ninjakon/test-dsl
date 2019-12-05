@@ -73,22 +73,22 @@ class TestSuite(ABC):
 
         # register before all steps
         if model.before_all:
-            self.before_alls = model.before_all.ba_steps
+            self.set_before_alls(model)
 
         # register before blocks
         if model.before:
-            self.befores = {b_block.name: b_block.b_steps for b_block in model.before.b_blocks}
+            self.set_befores(model)
 
         # register tests
-        self.tests = {test.name: test for test in model.tests}
+        self.set_tests(model)
 
         # register after blocks
         if model.after:
-            self.afters = {a_block.name: a_block.a_steps for a_block in model.after.a_blocks}
+            self.set_afters(model)
 
         # register after all steps
         if model.after_all:
-            self.after_alls = model.after_all.aa_steps
+            self.set_after_alls(model)
 
     @abstractmethod
     def run_all(self):
@@ -104,6 +104,26 @@ class TestSuite(ABC):
 
     @abstractmethod
     def set_actor_definition(self, actor):
+        pass
+
+    @abstractmethod
+    def set_before_alls(self, model):
+        pass
+
+    @abstractmethod
+    def set_befores(self, model):
+        pass
+
+    @abstractmethod
+    def set_tests(self, model):
+        pass
+
+    @abstractmethod
+    def set_afters(self, model):
+        pass
+
+    @abstractmethod
+    def set_after_alls(self, model):
         pass
 
     @staticmethod

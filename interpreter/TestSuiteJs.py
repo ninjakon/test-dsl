@@ -28,3 +28,18 @@ class TestSuiteJs(TestSuite):
         self.actor_definitions[stringify(actor.name)] = \
             ((stringify(actor_class), stringify(class_name)),
              [(stringify(a.name), stringify(a.value)) for a in actor.attributes])
+
+    def set_before_alls(self, model):
+        pass
+
+    def set_befores(self, model):
+        pass
+
+    def set_tests(self, model):
+        pass
+
+    def set_afters(self, model):
+        pass
+
+    def set_after_alls(self, model):
+        pass
