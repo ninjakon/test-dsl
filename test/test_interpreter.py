@@ -1,7 +1,7 @@
 from os.path import dirname, join
 
 from dsl import get_metamodel
-from interpreter.TestSuitePy import TestSuitePy
+from interpreter.python.TestSuitePy import TestSuitePy
 
 
 def test_everything_ok():

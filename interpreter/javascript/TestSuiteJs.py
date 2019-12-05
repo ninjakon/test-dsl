@@ -38,7 +38,7 @@ def stringify_step(step):
 class TestSuiteJs(TestSuite):
     def run_all(self):
         response = muterun_js(
-            'interpreter/TestHelper.js',
+            'interpreter/javascript/TestHelper.js',
             '"' + json.dumps(self.actor_definitions) + '"' + ' '
             '"' + json.dumps(self.before_alls) + '"' + ' ' +
             '"' + json.dumps(self.befores) + '"' + ' ' +
@@ -58,7 +58,7 @@ class TestSuiteJs(TestSuite):
     def set_actor_definitions(self, model):
         for actor in model.actors:
             module = actor.path.replace('-', '/')
-            actor_class = '../' + module + '.js'
+            actor_class = '../../' + module + '.js'
             self.actor_definitions[stringify(actor.name)] = \
                 (stringify(actor_class), [(stringify(a.name), stringify(a.value)) for a in actor.attributes])
 

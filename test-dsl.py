@@ -1,8 +1,7 @@
 import sys, getopt, os
 
 from dsl.metamodel import get_metamodel
-from interpreter.TestSuitePy import TestSuitePy
-from interpreter.TestSuiteJs import TestSuiteJs
+from interpreter.javascript.TestSuiteJs import TestSuiteJs
 
 
 def print_help():
