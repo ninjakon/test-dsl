@@ -41,12 +41,20 @@ class TestSuiteJs(TestSuite):
         self.helper_path = helper_path
 
     def run_all(self):
+        self.run_tests(self.tests)
+
+    def run_test(self, test_name, single=True):
+        str_test = stringify(test_name)
+        single_test = { str_test: self.tests[str_test] }
+        self.run_tests(single_test)
+
+    def run_tests(self, test_list):
         response = muterun_js(
             self.helper_path,
             '"' + json.dumps(self.actor_definitions) + '"' + ' '
-            '"' + json.dumps(self.before_alls) + '"' + ' ' +
+                                                             '"' + json.dumps(self.before_alls) + '"' + ' ' +
             '"' + json.dumps(self.befores) + '"' + ' ' +
-            '"' + json.dumps(self.tests) + '"' + ' ' +
+            '"' + json.dumps(test_list) + '"' + ' ' +
             '"' + json.dumps(self.afters) + '"' + ' ' +
             '"' + json.dumps(self.after_alls) + '"' + ' ' +
             '"' + str(self.verbose) + '"'
@@ -55,9 +63,6 @@ class TestSuiteJs(TestSuite):
             print(response.stdout.decode("utf-8"))
         else:
             print(response.stderr.decode("utf-8"))
-
-    def run_test(self, test_name, single=True):
-        pass
 
     def set_actor_definitions(self, model):
         for actor in model.actors:
