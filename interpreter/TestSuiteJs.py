@@ -7,19 +7,15 @@ from interpreter.TestSuite import TestSuite
 
 class TestSuiteJs(TestSuite):
     def run_all(self):
-        actor_definitions = json.dumps(
-            {
-                an : (ca[0], [(a.name, a.value) for a in ca[1]]) for an, ca in self.actor_definitions.items()
-            }
-        )
-        response = muterun_js('interpreter/TestHelper.js', json.dumps(actor_definitions))
+        response = muterun_js('interpreter/TestHelper.js', '"' + json.dumps(self.actor_definitions) + '"')
         print(response.stdout.decode("utf-8"))
 
     def run_test(self, test_name, single=True):
         pass
 
-    @staticmethod
-    def import_actor(actor_obj):
-        module = actor_obj.path.replace('-', '/')
-        class_name = actor_obj.class_name
-        return 'const ' + class_name + ' = require(../' + module + '.js)'
+    def set_actor_definition(self, actor):
+        module = actor.path.replace('-', '/')
+        class_name = actor.class_name
+        actor_class = '../' + module + '.js'
+        self.actor_definitions[actor.name] = (actor_class, [(a.name, a.value) for a in actor.attributes])
+

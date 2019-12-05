@@ -68,9 +68,8 @@ class TestSuite(ABC):
 
         # register actors
         for actor in model.actors:
-            # load module and actor class
-            actor_class = self.__class__.import_actor(actor)
-            self.actor_definitions[actor.name] = (actor_class, actor.attributes)
+            # load actor definition from module
+            self.set_actor_definition(actor)
 
         # register before all steps
         if model.before_all:
@@ -103,9 +102,8 @@ class TestSuite(ABC):
         if self.verbose:
             print('\t' * tb_lvl + text)
 
-    @staticmethod
     @abstractmethod
-    def import_actor(actor):
+    def set_actor_definition(self, actor):
         pass
 
     @staticmethod

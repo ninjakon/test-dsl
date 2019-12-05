@@ -159,8 +159,9 @@ class TestSuitePy(TestSuite):
         self.test_report['TC'] += 1
         self.test_report['CT'] = (None, [])
 
-    @staticmethod
-    def import_actor(actor_obj):
-        package = actor_obj.path.replace('-', '.')
-        module =  __import__(package, fromlist=[actor_obj.class_name])
-        return getattr(module, actor_obj.class_name)
+    def set_actor_definition(self, actor):
+        package = actor.path.replace('-', '.')
+        class_name = actor.class_name
+        module =  __import__(package, fromlist=[class_name])
+        actor_class = getattr(module, actor.class_name)
+        self.actor_definitions[actor.name] = (actor_class, actor.attributes)
