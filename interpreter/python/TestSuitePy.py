@@ -24,11 +24,11 @@ class TestSuitePy(TestSuite):
         self.test_report['FT'] = []             # failed tests
         self.test_report['AA'] = []             # after all errors
 
-        if len(self.before_alls) > 0:
+        if len(self.before_all) > 0:
             self.print_if_verbose(TText.INFO + 'Running BeforeAll' + TText.ENDC)
 
         self.add_error_fun = lambda l, e : self.test_report['BA'].append((l, e))
-        self.process_steps(self.before_alls, tb_lvl=1)
+        self.process_steps(self.before_all, tb_lvl=1)
 
     def instantiate_actors(self):
         self.print_if_verbose()
@@ -49,11 +49,11 @@ class TestSuitePy(TestSuite):
         self.print_if_verbose()
 
     def teardown_testing(self):
-        if len(self.after_alls) > 0:
+        if len(self.after_all) > 0:
             self.print_if_verbose(TText.INFO + 'Running AfterAll' + TText.ENDC)
 
         self.add_error_fun = lambda l, e : self.test_report['AA'].append((l, e))
-        self.process_steps(self.after_alls, tb_lvl=1)
+        self.process_steps(self.after_all, tb_lvl=1)
 
         self.actors.clear()
 
@@ -168,7 +168,7 @@ class TestSuitePy(TestSuite):
             self.actor_definitions[actor.name] = (actor_class, actor.attributes)
 
     def set_before_all(self, model):
-        self.before_alls = model.before_all.ba_steps
+        self.before_all = model.before_all.ba_steps
 
     def set_befores(self, model):
         self.befores = {b_block.name: b_block.b_steps for b_block in model.before.b_blocks}
@@ -180,4 +180,4 @@ class TestSuitePy(TestSuite):
         self.afters = {a_block.name: a_block.a_steps for a_block in model.after.a_blocks}
 
     def set_after_all(self, model):
-        self.after_alls = model.after_all.aa_steps
+        self.after_all = model.after_all.aa_steps

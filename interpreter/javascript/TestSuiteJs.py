@@ -52,11 +52,11 @@ class TestSuiteJs(TestSuite):
         response = muterun_js(
             self.helper_path,
             '"' + json.dumps(self.actor_definitions) + '"' + ' '
-                                                             '"' + json.dumps(self.before_alls) + '"' + ' ' +
+                                                             '"' + json.dumps(self.before_all) + '"' + ' ' +
             '"' + json.dumps(self.befores) + '"' + ' ' +
             '"' + json.dumps(test_list) + '"' + ' ' +
             '"' + json.dumps(self.afters) + '"' + ' ' +
-            '"' + json.dumps(self.after_alls) + '"' + ' ' +
+            '"' + json.dumps(self.after_all) + '"' + ' ' +
             '"' + str(self.verbose) + '"'
         )
         if response.exitcode == 0:
@@ -72,7 +72,7 @@ class TestSuiteJs(TestSuite):
                 (stringify(actor_class), [(stringify(a.name), stringify(a.value)) for a in actor.attributes])
 
     def set_before_all(self, model):
-        self.before_alls = stringify_steps(model.before_all.ba_steps)
+        self.before_all = stringify_steps(model.before_all.ba_steps)
 
     def set_befores(self, model):
         self.befores = {stringify(bb.name): stringify_steps(bb.b_steps) for bb in model.before.b_blocks}
@@ -90,4 +90,4 @@ class TestSuiteJs(TestSuite):
         self.afters = {stringify(ab.name): stringify_steps(ab.a_steps) for ab in model.after.a_blocks}
 
     def set_after_all(self, model):
-        self.after_alls = stringify_steps(model.after_all.aa_steps)
+        self.after_all = stringify_steps(model.after_all.aa_steps)

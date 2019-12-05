@@ -16,11 +16,11 @@ class TestSuite(ABC):
         # test elements
         self.actor_definitions = {}
         self.actors = {}
-        self.before_alls = []
+        self.before_all = []
         self.befores = {}
         self.tests = {}
         self.afters = {}
-        self.after_alls = []
+        self.after_all = []
 
     def __str__(self):
         if not self.test_report:
