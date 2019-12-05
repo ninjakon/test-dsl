@@ -34,33 +34,33 @@ var test_report = {};
 
 /* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  Step Processing */
 function process_steps(steps) {
-    for (var i = 0; i < steps.length; i++) {
-        step = steps[i];
-        type = step[0];
-        args = step[1];
-        process_step(type, args);
-    }
+    const recursive_step = (i) => {
+        if (i < steps.length - 1) {
+            process_step(steps[i][0], steps[i][1], ++i, recursive_step);
+        }
+    };
+    recursive_step(0);
 }
 
-function process_step(type, args) {
+function process_step(type, args, i, callback) {
     switch (type) {
         case 'AssertStep':
-            process_assert_step(args);
+            process_assert_step(args, i, callback);
             break;
         case 'AssignStep':
-            process_assign_step(args);
+            process_assign_step(args, i, callback);
             break;
         case 'CallStep':
-            process_call_step(args);
+            process_call_step(args, i, callback);
             break;
         case 'TimeStep':
-            process_time_step(args);
+            process_time_step(args, i, callback);
             break;
     }
 }
 
 /* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  * Specified Step Processing */
-function process_assert_step(step) {
+function process_assert_step(args, i, callback) {
     actor_name = args[0];
     actor = actors[actor_name];
     attribute = args[1];
@@ -72,16 +72,18 @@ function process_assert_step(step) {
     if (verbose) {
         log += message;
     }
+    callback(i);
 }
 
-function process_assign_step(args) {
+function process_assign_step(args, i, callback) {
     actor = actors[args[0]];
     attribute = args[1];
     value = args[2];
     actor[attribute] = value;
+    callback(i);
 }
 
-function process_call_step(args) {
+function process_call_step(args, i, callback) {
     actor = actors[args[0]];
     method = args[1];
     params = [];
@@ -91,10 +93,12 @@ function process_call_step(args) {
         is_actor ? params.push(actors[param]) : params.push(param);
     }
     actor[method](...params);
+    callback(i);
 }
 
-async function process_time_step(args) {
+async function process_time_step(args, i, callback) {
     await sleep(args[0]);
+    callback(i);
 }
 
 /*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *Assertions */
