@@ -10,6 +10,10 @@ def stringify(string):
     return '"' + str(string) + '"'
 
 
+def stringify_steps(steps):
+    return [stringify_step(s) for s in steps]
+
+
 def stringify_step(step):
     step_type = step.__class__.__name__
     step_vars = []
@@ -37,7 +41,9 @@ class TestSuiteJs(TestSuite):
             'interpreter/TestHelper.js',
             '"' + json.dumps(self.actor_definitions) + '"' + ' '
             '"' + json.dumps(self.before_alls) + '"' + ' ' +
+            '"' + json.dumps(self.befores) + '"' + ' ' +
             '"' + json.dumps(self.tests) + '"' + ' ' +
+            '"' + json.dumps(self.afters) + '"' + ' ' +
             '"' + json.dumps(self.after_alls) + '"' + ' ' +
             '"' + str(self.verbose) + '"'
         )
@@ -57,22 +63,22 @@ class TestSuiteJs(TestSuite):
                 (stringify(actor_class), [(stringify(a.name), stringify(a.value)) for a in actor.attributes])
 
     def set_before_all(self, model):
-        self.before_alls = [stringify_step(s) for s in model.before_all.ba_steps]
+        self.before_alls = stringify_steps(model.before_all.ba_steps)
 
     def set_befores(self, model):
-        pass
+        self.befores = {stringify(bb.name): stringify_steps(bb.b_steps) for bb in model.before.b_blocks}
 
     def set_tests(self, model):
         self.tests = {
             stringify(test.name): [
                 [stringify(b.name) for b in test.befores],
-                [stringify_step(s) for s in test.e_steps],
+                stringify_steps(test.e_steps),
                 [stringify(a.name) for a in test.afters],
             ] for test in model.tests
         }
 
     def set_afters(self, model):
-        pass
+        self.afters = {stringify(ab.name): stringify_steps(ab.a_steps) for ab in model.after.a_blocks}
 
     def set_after_all(self, model):
-        self.after_alls = [stringify_step(s) for s in model.after_all.aa_steps]
+        self.after_alls = stringify_steps(model.after_all.aa_steps)

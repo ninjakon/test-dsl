@@ -1,9 +1,11 @@
 const argType = {
     actor_definitions: 2,
     before_all: 3,
-    tests: 4,
-    after_all: 5,
-    verbose: 6
+    befores: 4,
+    tests: 5,
+    afters: 6,
+    after_all: 7,
+    verbose: 8
 };
 
 const testBlock = {
@@ -114,7 +116,9 @@ function style_assertion(is_ok, actor_name, attribute, expected_value, actual_va
 /*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  Testing Arguments */
 var actor_definitions = JSON.parse(process.argv[argType.actor_definitions]);
 var before_all = JSON.parse(process.argv[argType.before_all]);
+var befores = JSON.parse(process.argv[argType.befores]);
 var tests = JSON.parse(process.argv[argType.tests]);
+var afters = JSON.parse(process.argv[argType.afters]);
 var after_all = JSON.parse(process.argv[argType.after_all]);
 var verbose = process.argv[argType.verbose] === 'True';
 
@@ -141,10 +145,23 @@ process_steps(before_all);
 // Run tests.
 for (var test_name in tests) {
     log += 'Running ' + test_name + '\n';
+    var test = tests[test_name];
+
+    // run befores
+    var test_befores = test[testBlock.before];
+    for (var i = 0; i < test_befores.length; i++) {
+        process_steps(befores[test_befores[i]]);
+    }
 
     // run test
-    var steps = tests[test_name][testBlock.execute];
+    var steps = test[testBlock.execute];
     process_steps(steps);
+
+    // run afters
+    var test_afters = test[testBlock.after];
+    for (var i = 0; i < test_afters.length; i++) {
+        process_steps(afters[test_afters[i]]);
+    }
 }
 
 // Run after all.
