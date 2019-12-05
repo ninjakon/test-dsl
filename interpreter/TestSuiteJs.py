@@ -20,7 +20,7 @@ def stringify_step(step):
     elif step_type == 'CallStep':
         step_vars.append(stringify(step.actor.name))
         step_vars.append(stringify(step.method))
-        parameters = [p.value if p.actor is None else stringify(p.actor.name) for p in step.parameters]
+        parameters = [(False, p.value) if p.actor is None else (True, stringify(p.actor.name)) for p in step.parameters]
         step_vars.append(parameters)
     elif step_type == 'AssertStep':
         step_vars.append(stringify(step.attributeReference.actor.name))

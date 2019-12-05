@@ -43,21 +43,37 @@ for (var test_name in tests) {
     for (var i = 0; i < steps.length; i++) {
         step = steps[i];
         type = step[0];
+        args = step[1];
 
         switch (type) {
             case 'AssertStep':
-                console.log(step);
+                actor = actors[args[0]];
+                attribute = args[1];
+                value = args[2];
+                if (actor[attribute] != value) {
+                    // PANIC
+                }
                 break;
             case 'AssignStep':
-                console.log("ASSIGN");
+                actor = actors[args[0]];
+                attribute = args[1];
+                value = args[2];
+                actor[attribute] = value;
                 break;
             case 'CallStep':
-                console.log("CALL");
+                actor = actors[args[0]];
+                method = args[1];
+                params = [];
+                for (var j = 0; j < args[2].length; j++) {
+                    is_actor = args[2][j][0];
+                    param = args[2][j][1];
+                    is_actor ? params.push(actors[param]) : params.push(param);
+                }
+                actor[method](...params);
                 break;
             case 'TimeStep':
-                console.log("TIME");
+                // await sleep(500);
                 break;
-
         }
     }
 }
