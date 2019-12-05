@@ -1,4 +1,4 @@
-module.export = class Account {
+module.exports = class Account {
     constructor() {
         this.allowNegBalance = false;
         this.balance = 0;
@@ -20,4 +20,4 @@ module.export = class Account {
     addAmount(amount) {
         this.balance += amount
     }
-}
+};

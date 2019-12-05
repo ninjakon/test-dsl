@@ -2,6 +2,7 @@ import sys, getopt, os
 
 from dsl.metamodel import get_metamodel
 from interpreter.TestSuitePy import TestSuitePy
+from interpreter.TestSuiteJs import TestSuiteJs
 
 
 def print_help():
@@ -39,6 +40,10 @@ def run(argv):
     # create model
     meta = get_metamodel()
     model = meta.model_from_file(test_suite_file)
+
+    ts = TestSuiteJs(verbose=True)
+    ts.interpret(model)
+    ts.run_all()
 
     # register test suite
     test_suite = TestSuitePy(verbose=verbose)

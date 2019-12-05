@@ -2,7 +2,7 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-module.export = class Database {
+module.exports = class Database {
     constructor() {
         this.driver = '';
         this.connected = false;
@@ -27,4 +27,4 @@ module.export = class Database {
         if (id === 1)
             return this.account_1
     }
-}
+};

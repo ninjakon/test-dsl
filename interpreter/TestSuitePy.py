@@ -162,4 +162,5 @@ class TestSuitePy(TestSuite):
     @staticmethod
     def import_actor(actor_obj):
         package = actor_obj.path.replace('-', '.')
-        return __import__(package, fromlist=[actor_obj.class_name])
+        module =  __import__(package, fromlist=[actor_obj.class_name])
+        return getattr(module, actor_obj.class_name)

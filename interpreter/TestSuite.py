@@ -69,8 +69,7 @@ class TestSuite(ABC):
         # register actors
         for actor in model.actors:
             # load module and actor class
-            module = self.__class__.import_actor(actor)
-            actor_class = getattr(module, actor.class_name)
+            actor_class = self.__class__.import_actor(actor)
             self.actor_definitions[actor.name] = (actor_class, actor.attributes)
 
         # register before all steps
