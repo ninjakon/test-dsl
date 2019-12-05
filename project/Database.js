@@ -2,7 +2,7 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-class Database {
+module.export = class Database {
     constructor() {
         this.driver = '';
         this.connected = false;

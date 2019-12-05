@@ -1,4 +1,4 @@
-class Account {
+module.export = class Account {
     constructor() {
         this.allowNegBalance = false;
         this.balance = 0;

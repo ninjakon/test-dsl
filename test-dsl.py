@@ -1,7 +1,7 @@
 import sys, getopt, os
 
 from dsl.metamodel import get_metamodel
-from interpreter.TestPy import TestSuite
+from interpreter.TestSuitePy import TestSuitePy
 
 
 def print_help():
@@ -41,7 +41,7 @@ def run(argv):
     model = meta.model_from_file(test_suite_file)
 
     # register test suite
-    test_suite = TestSuite(verbose=verbose)
+    test_suite = TestSuitePy(verbose=verbose)
     test_suite.interpret(model)
     print('Registered test suite successfully.\n')
 
