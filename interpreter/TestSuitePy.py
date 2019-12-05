@@ -159,12 +159,13 @@ class TestSuitePy(TestSuite):
         self.test_report['TC'] += 1
         self.test_report['CT'] = (None, [])
 
-    def set_actor_definition(self, actor):
-        package = actor.path.replace('-', '.')
-        class_name = actor.class_name
-        module =  __import__(package, fromlist=[class_name])
-        actor_class = getattr(module, actor.class_name)
-        self.actor_definitions[actor.name] = (actor_class, actor.attributes)
+    def set_actor_definitions(self, model):
+        for actor in model.actors:
+            package = actor.path.replace('-', '.')
+            class_name = actor.class_name
+            module =  __import__(package, fromlist=[class_name])
+            actor_class = getattr(module, actor.class_name)
+            self.actor_definitions[actor.name] = (actor_class, actor.attributes)
 
     def set_before_alls(self, model):
         self.before_alls = model.before_all.ba_steps

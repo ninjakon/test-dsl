@@ -66,10 +66,8 @@ class TestSuite(ABC):
         # need model for error position
         self.model = model
 
-        # register actors
-        for actor in model.actors:
-            # load actor definition from module
-            self.set_actor_definition(actor)
+        # register actors (only definitions not instances)
+        self.set_actor_definitions(model)
 
         # register before all steps
         if model.before_all:
@@ -103,7 +101,7 @@ class TestSuite(ABC):
             print('\t' * tb_lvl + text)
 
     @abstractmethod
-    def set_actor_definition(self, actor):
+    def set_actor_definitions(self, model):
         pass
 
     @abstractmethod
