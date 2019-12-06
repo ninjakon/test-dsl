@@ -25,13 +25,13 @@ const tText = {
 };
 
 /*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  Testing Arguments */
-var actor_definitions = JSON.parse(process.argv[argType.actor_definitions]);
-var before_all = JSON.parse(process.argv[argType.before_all]);
-var befores = JSON.parse(process.argv[argType.befores]);
-var tests = JSON.parse(process.argv[argType.tests]);
-var afters = JSON.parse(process.argv[argType.afters]);
-var after_all = JSON.parse(process.argv[argType.after_all]);
-var verbose = process.argv[argType.verbose] === 'True';
+const actor_definitions = JSON.parse(process.argv[argType.actor_definitions]);
+const before_all = JSON.parse(process.argv[argType.before_all]);
+const befores = JSON.parse(process.argv[argType.befores]);
+const tests = JSON.parse(process.argv[argType.tests]);
+const afters = JSON.parse(process.argv[argType.afters]);
+const after_all = JSON.parse(process.argv[argType.after_all]);
+const verbose = process.argv[argType.verbose] === 'True';
 
 /* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  Log */
 var log = {
@@ -61,13 +61,15 @@ var test_report = {
 add_error_fun = null;
 
 /* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  Step Processing */
-function process_steps(steps, is_ba=false) {
+function process_steps(steps, is_ba=false, callback) {
     const recursive_step = (i) => {
         if (i < steps.length) {
             if (is_ba) {
                 print_if_verbose(tText.INFO + '"' + steps[i][0] + '" OK', tb_lvl=2);
             }
             process_step(steps[i][0], steps[i][1], i + 1, recursive_step);
+        } else {
+            callback();
         }
     };
     recursive_step(0);
@@ -90,6 +92,14 @@ function process_step(type, args, i, callback) {
     }
 }
 
+/*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *Testing */
+function process_ba_aa(type, steps, callback) {
+    var is_ba = type.localeCompare('BA') === 0;
+    print_if_verbose(tText.INFO + (is_ba ? 'Running BeforeAll' : 'Running AfterAll'));
+    add_error_fun = function(l, e) { test_report[type].push([l + tText.ENDC, e + tText.ENDC]) };
+    process_steps(steps, is_ba=true, callback);
+}
+
 function process_before_after_test(type, blocks, references) {
     if (references.length > 0) {
         print_if_verbose(tText.INFO + 'Running ' + type, tb_lvl=1);
@@ -99,6 +109,51 @@ function process_before_after_test(type, blocks, references) {
     };
     for (var i = 0; i < references.length; i++) {
         process_steps(blocks[references[i]], true);
+    }
+}
+
+function process_tests(tests, callback) {
+    const recursive_test= (i) => {
+        if (i < tests.length) {
+            if (is_ba) {
+                print_if_verbose(tText.INFO + '"' + tests[i][0] + '" OK', tb_lvl=2);
+            }
+            process_test(tests[i][0], tests[i][1], i + 1, recursive_test);
+        } else {
+            callback();
+        }
+    };
+    recursive_step(0);
+}
+
+function process_test() {
+    for (var i = 0; i < tests.length; i++) {
+        log.raw_text += tText.INFO + 'Running ' + test_name + tText.ENDC + '\n';
+        var test_name = tests[i];
+        test_report.CT = [test_name, []];
+        var test = tests[test_name];
+
+        // run befores
+        process_before_after_test('Before', befores, test[testBlock.before]);
+
+        // run test
+        var steps = test[testBlock.execute];
+        print_if_verbose(tText.INFO + 'Executing Test', tb_lvl=1);
+        process_steps(steps);
+
+        // run afters
+        process_before_after_test('After', afters, test[testBlock.after]);
+
+        // update test report
+        var current_test = test_report.CT[0];
+        var errors = test_report.CT[1];
+        if (errors.length === 0) {
+            test_report.ST.push(current_test);
+        } else {
+            test_report.FT.push(test_report.CT);
+        }
+        test_report.TC += 1;
+        test_report.CT = [null, []];
     }
 }
 
@@ -188,44 +243,39 @@ for (var actor_name in actor_definitions) {
 log.actor_table = actor_tbl;
 
 /*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *Testing */
-// Run before all.
-print_if_verbose(tText.INFO + 'Running BeforeAll');
-add_error_fun = function(l, e) { test_report['BA'].push([l + tText.ENDC, e + tText.ENDC]) };
-process_steps(before_all, true);
+process_ba_aa('BA', before_all, () => {
+    // Run tests.
+    for (var i = 0; i < tests.length; i++) {
+        log.raw_text += tText.INFO + 'Running ' + test_name + tText.ENDC + '\n';
+        var test_name = tests[i];
+        test_report.CT = [test_name, []];
+        var test = tests[test_name];
 
-// Run tests.
-for (var test_name in tests) {
-    log.raw_text += tText.INFO + 'Running ' + test_name + tText.ENDC + '\n';
-    var test = tests[test_name];
-    test_report.CT = [test_name, []];
+        // run befores
+        process_before_after_test('Before', befores, test[testBlock.before]);
 
-    // run befores
-    process_before_after_test('Before', befores, test[testBlock.before]);
+        // run test
+        var steps = test[testBlock.execute];
+        print_if_verbose(tText.INFO + 'Executing Test', tb_lvl=1);
+        process_steps(steps);
 
-    // run test
-    var steps = test[testBlock.execute];
-    print_if_verbose(tText.INFO + 'Executing Test', tb_lvl=1);
-    process_steps(steps);
+        // run afters
+        process_before_after_test('After', afters, test[testBlock.after]);
 
-    // run afters
-    process_before_after_test('After', afters, test[testBlock.after]);
-
-    // update test report
-    var current_test = test_report.CT[0];
-    var errors = test_report.CT[1];
-    if (errors.length === 0) {
-        test_report.ST.push(current_test);
-    } else {
-        test_report.FT.push(test_report.CT);
+        // update test report
+        var current_test = test_report.CT[0];
+        var errors = test_report.CT[1];
+        if (errors.length === 0) {
+            test_report.ST.push(current_test);
+        } else {
+            test_report.FT.push(test_report.CT);
+        }
+        test_report.TC += 1;
+        test_report.CT = [null, []];
     }
-    test_report.TC += 1;
-    test_report.CT = [null, []];
-}
 
-// Run after all.
-print_if_verbose(tText.INFO + 'Running AfterAll');
-add_error_fun = function(l, e) { test_report['AA'].push([l + tText.ENDC, e + tText.ENDC]) };
-process_steps(after_all, true);
+    process_ba_aa('AA', after_all, () => {
+       console.log(JSON.stringify({log: log, test_report: test_report}));
+    });
+});
 
-// Output
-console.log(JSON.stringify({log: log, test_report: test_report}));
