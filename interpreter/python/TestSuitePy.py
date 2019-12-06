@@ -1,105 +1,10 @@
 import time
 
-
-class TText:
-    INFO = '\033[94m'
-    OK = '\033[92m'
-    WARN = '\033[93m'
-    FAIL = '\033[91m'
-    BOLD = '\033[1m'
-    UL = '\033[4m'
-    ENDC = '\033[0m'
+from interpreter.TestSuite import TestSuite
+from interpreter.TText import TText
 
 
-class TestSuite:
-    instance_row = '| {:<15} |  {:<15} |  {:<63} |'
-
-    def __init__(self, verbose=False):
-        # test suite attributes
-        self.verbose = verbose
-        self.model = None
-        self.test_report = {}
-        self.add_error_fun = None
-
-        # test elements
-        self.actor_definitions = {}
-        self.actors = {}
-        self.before_alls = []
-        self.befores = {}
-        self.tests = {}
-        self.afters = {}
-        self.after_alls = []
-
-    def __str__(self):
-        if not self.test_report:
-            return TText.INFO + 'Nothing to report.' + TText.ENDC
-
-        # get all error counts
-        ba_count = len(self.test_report['BA'])
-        tt_count = self.test_report['TC']
-        st_count = len(self.test_report['ST'])
-        ft_count = len(self.test_report['FT'])
-        aa_count = len(self.test_report['AA'])
-
-        # pretty print success/error counts (including error messages)
-        report = TText.INFO + 'Processed {} Tests:\n'.format(tt_count) + TText.ENDC
-        if ba_count > 0:
-            report += '> ' + \
-                TText.FAIL + 'BeforeAll failed!\n' + TText.ENDC
-            for msg in self.test_report['BA']:
-                report += '> ' + ' ' * 8 + msg[0] + '\n'
-                report += '> ' + ' ' * 8 + msg[1] + '\n'
-        if st_count > 0:
-            report += '> ' + \
-                TText.OK + 'Tests passed: ' + TText.BOLD + '{}/{}'.format(st_count, tt_count) + TText.ENDC + \
-                TText.OK + ' tests.\n'.format(ft_count, tt_count) + TText.ENDC
-        if ft_count > 0:
-            report += '> ' + \
-                TText.FAIL + 'Tests failed: ' + TText.BOLD + '{}/{}'.format(ft_count, tt_count) + TText.ENDC + \
-                TText.FAIL + ' tests!\n'.format(ft_count, tt_count) + TText.ENDC
-            for test, msgs in self.test_report['FT']:
-                report += '> ' + ' ' * 4 + TText.FAIL + test + '\n' + TText.ENDC
-                for msg in msgs:
-                    report += '> ' + ' ' * 8 + msg[0] + '\n'
-                    report += '> ' + ' ' * 8 + msg[1] + '\n'
-        if aa_count > 0:
-            report += '> ' + \
-                TText.FAIL + 'AfterAll failed!\n' + TText.ENDC
-            for msg in self.test_report['AA']:
-                report += '> ' + ' ' * 8 + msg[0] + '\n'
-                report += '> ' + ' ' * 8 + msg[1] + '\n'
-        return report
-
-    def interpret(self, model):
-        # need model for error position
-        self.model = model
-
-        # register actors
-        for actor in model.actors:
-            # load module and actor class
-            module = TestSuite.import_actor(actor)
-            actor_class = getattr(module, actor.class_name)
-            self.actor_definitions[actor.name] = (actor_class, actor.attributes)
-
-        # register before all steps
-        if model.before_all:
-            self.before_alls = model.before_all.ba_steps
-
-        # register before blocks
-        if model.before:
-            self.befores = {b_block.name: b_block.b_steps for b_block in model.before.b_blocks}
-
-        # register tests
-        self.tests = {test.name: test for test in model.tests}
-
-        # register after blocks
-        if model.after:
-            self.afters = {a_block.name: a_block.a_steps for a_block in model.after.a_blocks}
-
-        # register after all steps
-        if model.after_all:
-            self.after_alls = model.after_all.aa_steps
-
+class TestSuitePy(TestSuite):
     def run_all(self):
         self.setup_testing()
 
@@ -119,17 +24,17 @@ class TestSuite:
         self.test_report['FT'] = []             # failed tests
         self.test_report['AA'] = []             # after all errors
 
-        if len(self.before_alls) > 0:
+        if len(self.before_all) > 0:
             self.print_if_verbose(TText.INFO + 'Running BeforeAll' + TText.ENDC)
 
         self.add_error_fun = lambda l, e : self.test_report['BA'].append((l, e))
-        self.process_steps(self.before_alls, tb_lvl=1)
+        self.process_steps(self.before_all, tb_lvl=1)
 
     def instantiate_actors(self):
         self.print_if_verbose()
         if len(self.actor_definitions) > 0:
             self.print_if_verbose(self.instance_row.format('Instance', 'Class', 'Attributes'))
-            self.print_if_verbose(self.instance_row.format('-' * 15, '-' * 15, '-' * 63))
+            self.print_if_verbose(self.instance_row.format('-' * 15, '-' * 31, '-' * 127))
         for actor_name in self.actor_definitions:
             actor = self.actor_definitions[actor_name]
             actor_class = actor[0]
@@ -144,11 +49,11 @@ class TestSuite:
         self.print_if_verbose()
 
     def teardown_testing(self):
-        if len(self.after_alls) > 0:
+        if len(self.after_all) > 0:
             self.print_if_verbose(TText.INFO + 'Running AfterAll' + TText.ENDC)
 
         self.add_error_fun = lambda l, e : self.test_report['AA'].append((l, e))
-        self.process_steps(self.after_alls, tb_lvl=1)
+        self.process_steps(self.after_all, tb_lvl=1)
 
         self.actors.clear()
 
@@ -166,7 +71,7 @@ class TestSuite:
 
         # process test execution steps
         if len(test.e_steps) > 0:
-            self.print_if_verbose(TText.INFO + 'Execute Test' + TText.ENDC, tb_lvl=1)
+            self.print_if_verbose(TText.INFO + 'Executing Test' + TText.ENDC, tb_lvl=1)
         self.add_error_fun = lambda l, e: self.test_report['CT'][1].append((l, e))
         self.process_steps(test.e_steps, tb_lvl=2)
 
@@ -182,10 +87,10 @@ class TestSuite:
     def process_before_after_test(self, type, calls, steps):
         if len(calls) > 0:
             self.print_if_verbose(TText.INFO + 'Running ' + type + TText.ENDC, tb_lvl=1)
+        self.add_error_fun = lambda l, e: self.test_report['CT'][1]\
+            .append((TText.INFO + 'In ' + type + ' Clause: ' + l, e))
         for call in calls:
             self.print_if_verbose(TText.INFO + '"' + call.name + '" OK' + TText.ENDC, tb_lvl=2)
-            self.add_error_fun = lambda l, e: self.test_report['CT'][1].append(
-                (TText.INFO + 'In ' + type + ' Clause: ' + l, e))
             self.process_steps(steps[call.name], tb_lvl=3)
 
     def process_steps(self, steps, tb_lvl=0):
@@ -225,14 +130,14 @@ class TestSuite:
                 TText.WARN + 'Assertion ' + TText.BOLD + 'ERROR' + TText.ENDC + \
                 TText.WARN + ' in ' + TText.UL + 'line {} column {}:'.format(line, column) + TText.ENDC
             error_msg = \
-                TestSuite.style_assertion('Expected', 'but was', '!', TText.FAIL) \
+                self.style_assertion('Expected', 'but was', '!', TText.FAIL) \
                     .format(actor_name, attribute, expected_value, actual_value)
             self.add_error_fun(line_info, error_msg)
             message = line_info + '\n' + error_msg
         else:
             message = \
                 TText.OK + 'Assertion OK: ' + TText.ENDC + \
-                TestSuite.style_assertion('Expected', 'and was', '.', TText.OK) \
+                self.style_assertion('Expected', 'and was', '.', TText.OK) \
                     .format(actor_name, attribute, expected_value, actual_value)
         self.print_if_verbose(message, tb_lvl=tb_lvl)
 
@@ -254,18 +159,35 @@ class TestSuite:
         self.test_report['TC'] += 1
         self.test_report['CT'] = (None, [])
 
-    def print_if_verbose(self, text='', tb_lvl=0):
-        if self.verbose:
-            print('\t' * tb_lvl + text)
+    def set_actor_definitions(self, model):
+        for actor in model.actors:
+            package = actor.path.replace('-', '.')
+            class_name = actor.class_name
+            module =  __import__(package, fromlist=[class_name])
+            actor_class = getattr(module, actor.class_name)
+            self.actor_definitions[actor.name] = (actor_class, actor.attributes)
 
-    @staticmethod
-    def import_actor(actor_obj):
-        package = actor_obj.path.replace('-', '.')
-        return __import__(package, fromlist=[actor_obj.class_name])
+    def set_before_all(self, model):
+        self.before_all = model.before_all.ba_steps
 
-    @staticmethod
-    def style_assertion(prefix, infix, suffix, color):
+    def set_befores(self, model):
+        self.befores = {b_block.name: b_block.b_steps for b_block in model.before.b_blocks}
+
+    def set_tests(self, model):
+        self.tests = {test.name: test for test in model.tests}
+
+    def set_afters(self, model):
+        self.afters = {a_block.name: a_block.a_steps for a_block in model.after.a_blocks}
+
+    def set_after_all(self, model):
+        self.after_all = model.after_all.aa_steps
+
+    def style_assertion(self, prefix, infix, suffix, color):
         return color + prefix + TText.BOLD + ' {}[{}]' + TText.ENDC + \
                color + ' == ' + TText.BOLD + '{} ' + TText.ENDC + \
                color + infix + TText.BOLD + ' {}' + TText.ENDC + \
                color + suffix + TText.ENDC
+
+    def print_if_verbose(self, text='', tb_lvl=0):
+        if self.verbose:
+            print('\t' * tb_lvl + text)

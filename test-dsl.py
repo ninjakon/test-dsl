@@ -1,11 +1,19 @@
 import sys, getopt, os
 
+from enum import Enum
+
 from dsl.metamodel import get_metamodel
-from interpreter.TestPy import TestSuite
+from interpreter.python.TestSuitePy import TestSuitePy
+from interpreter.javascript.TestSuiteJs import TestSuiteJs
+
+
+class SupportedLanguages(Enum):
+    PYTHON = 0
+    JAVASCRIPT = 1
 
 
 def print_help():
-    print('test-dsl -t <test_suite_file> -v -a -s <test1/test2/...>')
+    print('test-dsl -t <test_suite_file> -v -a -s <test1/test2/...> -l <py|js>')
 
 
 def run(argv):
@@ -13,9 +21,11 @@ def run(argv):
     verbose = False
     single_tests = []
     run_all = False
+    language = SupportedLanguages.PYTHON
 
     try:
-        opts, args = getopt.getopt(argv, 'ht:vas:', ['help', 'test-suite=', 'verbose=', 'run-all', 'run-single'])
+        opts, args = getopt.getopt(argv, 'ht:vas:l:',
+                                   ['help', 'test-suite=', 'verbose=', 'run-all', 'run-single', 'language='])
     except getopt.GetoptError:
         print_help()
         sys.exit(2)
@@ -31,6 +41,14 @@ def run(argv):
             run_all = True
         elif opt in ('-s', '--run-single'):
             single_tests = arg.split('/')
+        elif opt in ('-l', '--language'):
+            if arg == 'py':
+                language = SupportedLanguages.PYTHON
+            elif arg == 'js':
+                language = SupportedLanguages.JAVASCRIPT
+            else:
+                print_help()
+                sys.exit(1)
 
     if not os.path.isfile(test_suite_file):
         print('File "' + test_suite_file + '" does not exist.')
@@ -41,7 +59,10 @@ def run(argv):
     model = meta.model_from_file(test_suite_file)
 
     # register test suite
-    test_suite = TestSuite(verbose=verbose)
+    if language == SupportedLanguages.JAVASCRIPT:
+        test_suite = TestSuiteJs('./interpreter/javascript/TestHelper.js', verbose=verbose)
+    else:
+        test_suite = TestSuitePy(verbose=verbose)
     test_suite.interpret(model)
     print('Registered test suite successfully.\n')
 
