@@ -71,7 +71,7 @@ class TestSuitePy(TestSuite):
 
         # process test execution steps
         if len(test.e_steps) > 0:
-            self.print_if_verbose(TText.INFO + 'Execute Test' + TText.ENDC, tb_lvl=1)
+            self.print_if_verbose(TText.INFO + 'Executing Test' + TText.ENDC, tb_lvl=1)
         self.add_error_fun = lambda l, e: self.test_report['CT'][1].append((l, e))
         self.process_steps(test.e_steps, tb_lvl=2)
 
@@ -130,14 +130,14 @@ class TestSuitePy(TestSuite):
                 TText.WARN + 'Assertion ' + TText.BOLD + 'ERROR' + TText.ENDC + \
                 TText.WARN + ' in ' + TText.UL + 'line {} column {}:'.format(line, column) + TText.ENDC
             error_msg = \
-                TestSuite.style_assertion('Expected', 'but was', '!', TText.FAIL) \
+                self.style_assertion('Expected', 'but was', '!', TText.FAIL) \
                     .format(actor_name, attribute, expected_value, actual_value)
             self.add_error_fun(line_info, error_msg)
             message = line_info + '\n' + error_msg
         else:
             message = \
                 TText.OK + 'Assertion OK: ' + TText.ENDC + \
-                TestSuite.style_assertion('Expected', 'and was', '.', TText.OK) \
+                self.style_assertion('Expected', 'and was', '.', TText.OK) \
                     .format(actor_name, attribute, expected_value, actual_value)
         self.print_if_verbose(message, tb_lvl=tb_lvl)
 
@@ -181,3 +181,13 @@ class TestSuitePy(TestSuite):
 
     def set_after_all(self, model):
         self.after_all = model.after_all.aa_steps
+
+    def style_assertion(self, prefix, infix, suffix, color):
+        return color + prefix + TText.BOLD + ' {}[{}]' + TText.ENDC + \
+               color + ' == ' + TText.BOLD + '{} ' + TText.ENDC + \
+               color + infix + TText.BOLD + ' {}' + TText.ENDC + \
+               color + suffix + TText.ENDC
+
+    def print_if_verbose(self, text='', tb_lvl=0):
+        if self.verbose:
+            print('\t' * tb_lvl + text)

@@ -25,17 +25,45 @@ const tText = {
 };
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  Testing Arguments */
+var actor_definitions = JSON.parse(process.argv[argType.actor_definitions]);
+var before_all = JSON.parse(process.argv[argType.before_all]);
+var befores = JSON.parse(process.argv[argType.befores]);
+var tests = JSON.parse(process.argv[argType.tests]);
+var afters = JSON.parse(process.argv[argType.afters]);
+var after_all = JSON.parse(process.argv[argType.after_all]);
+var verbose = process.argv[argType.verbose] === 'True';
+
 /* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  * Output Variables */
-var log = '';
+var log = {
+    raw_text: '',
+    tables: []
+};
 var test_report = {};
 
+function print_if_verbose(msg, tb_lvl=0, is_table=false) {
+    if (verbose) {
+        if (is_table) {
+            log.tables.push(msg);
+        } else {
+            for (var i = 0; i < tb_lvl; i++) {
+                log.raw_text += '\t';
+            }
+            log.raw_text += msg + tText.ENDC + '\n';
+        }
+    }
+}
+
 /* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  Step Processing */
-function process_steps(steps) {
+function process_steps(steps, is_ba=false) {
     const recursive_step = (i) => {
         if (i < steps.length - 1) {
+            if (is_ba) {
+                print_if_verbose(tText.INFO + '"' + steps[i][0] + '" OK', tb_lvl=2);
+            }
             process_step(steps[i][0], steps[i][1], ++i, recursive_step);
         }
     };
@@ -59,6 +87,15 @@ function process_step(type, args, i, callback) {
     }
 }
 
+function process_before_after_test(type, blocks, references) {
+    if (references.length > 0) {
+        print_if_verbose(tText.INFO + 'Running ' + type, tb_lvl=1);
+    }
+    for (var i = 0; i < references.length; i++) {
+        process_steps(blocks[references[i]], true);
+    }
+}
+
 /* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  * Specified Step Processing */
 function process_assert_step(args, i, callback) {
     actor_name = args[0];
@@ -69,9 +106,7 @@ function process_assert_step(args, i, callback) {
 
     is_ok = actual_value === expected_value;
     message = style_assertion(is_ok, actor_name, attribute, expected_value, actual_value)
-    if (verbose) {
-        log += message;
-    }
+    print_if_verbose(message, tb_lvl=2);
     callback(i);
 }
 
@@ -118,20 +153,16 @@ function style_assertion(is_ok, actor_name, attribute, expected_value, actual_va
     return prefix + color + 'Expected ' + tText.BOLD + ` ${actor_name}[${attribute}]` + tText.ENDC +
         color + ' == ' + tText.BOLD + `${expected_value} ` + tText.ENDC +
         color + infix + tText.BOLD + ` ${actual_value}` + tText.ENDC +
-        color + suffix + tText.ENDC + '\n'
+        color + suffix
 }
-
-/*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  Testing Arguments */
-var actor_definitions = JSON.parse(process.argv[argType.actor_definitions]);
-var before_all = JSON.parse(process.argv[argType.before_all]);
-var befores = JSON.parse(process.argv[argType.befores]);
-var tests = JSON.parse(process.argv[argType.tests]);
-var afters = JSON.parse(process.argv[argType.afters]);
-var after_all = JSON.parse(process.argv[argType.after_all]);
-var verbose = process.argv[argType.verbose] === 'True';
 
 // Load actors by specifying modules, instantiating classes and setting attributes.
 var actors = {};
+var actor_tbl = {
+    actor_name: [],
+    actor_class: [],
+    instance: []
+};
 for (var actor_name in actor_definitions) {
     // instantiate classes
     var module = actor_definitions[actor_name][0];
@@ -145,35 +176,37 @@ for (var actor_name in actor_definitions) {
         var value = attributes[i][1];
         actors[actor_name][attribute_name] = value;
     }
+
+    // append to actor table
+    actor_tbl.actor_name.push(actor_name);
+    actor_tbl.actor_class.push(actor_class);
+    actor_tbl.instance.push(JSON.stringify(actors[actor_name]));
 }
+print_if_verbose(JSON.stringify(actor_tbl), true);
 
 // Run before all.
-process_steps(before_all);
+print_if_verbose(tText.INFO + 'Running BeforeAll');
+process_steps(before_all, true);
 
 // Run tests.
 for (var test_name in tests) {
-    log += 'Running ' + test_name + '\n';
+    log.raw_text += tText.INFO + 'Running ' + test_name + tText.ENDC + '\n';
     var test = tests[test_name];
 
     // run befores
-    var test_befores = test[testBlock.before];
-    for (var i = 0; i < test_befores.length; i++) {
-        process_steps(befores[test_befores[i]]);
-    }
+    process_before_after_test('Before', befores, test[testBlock.before]);
 
     // run test
     var steps = test[testBlock.execute];
+    print_if_verbose(tText.INFO + 'Executing Test', tb_lvl=1);
     process_steps(steps);
 
     // run afters
-    var test_afters = test[testBlock.after];
-    for (var i = 0; i < test_afters.length; i++) {
-        process_steps(afters[test_afters[i]]);
-    }
+    process_before_after_test('After', afters, test[testBlock.after]);
 }
 
 // Run after all.
 process_steps(after_all);
 
 // Output
-console.log(log);
+console.log(JSON.stringify(log));

@@ -60,7 +60,8 @@ class TestSuiteJs(TestSuite):
             '"' + str(self.verbose) + '"'
         )
         if response.exitcode == 0:
-            print(response.stdout.decode("utf-8"))
+            response_dict = json.loads(response.stdout.decode("utf-8"))
+            print(response_dict['raw_text'])
         else:
             print(response.stderr.decode("utf-8"))
 

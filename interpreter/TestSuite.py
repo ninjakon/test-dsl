@@ -96,10 +96,6 @@ class TestSuite(ABC):
     def run_test(self, test_name, single=True):
         pass
 
-    def print_if_verbose(self, text='', tb_lvl=0):
-        if self.verbose:
-            print('\t' * tb_lvl + text)
-
     @abstractmethod
     def set_actor_definitions(self, model):
         pass
@@ -123,10 +119,3 @@ class TestSuite(ABC):
     @abstractmethod
     def set_after_all(self, model):
         pass
-
-    @staticmethod
-    def style_assertion(prefix, infix, suffix, color):
-        return color + prefix + TText.BOLD + ' {}[{}]' + TText.ENDC + \
-               color + ' == ' + TText.BOLD + '{} ' + TText.ENDC + \
-               color + infix + TText.BOLD + ' {}' + TText.ENDC + \
-               color + suffix + TText.ENDC

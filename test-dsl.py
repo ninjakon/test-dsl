@@ -60,7 +60,7 @@ def run(argv):
 
     # register test suite
     if language == SupportedLanguages.JAVASCRIPT:
-        test_suite = TestSuiteJs('./interpreter/javascript/TestHelper.js', verbose=True)
+        test_suite = TestSuiteJs('./interpreter/javascript/TestHelper.js', verbose=verbose)
     else:
         test_suite = TestSuitePy(verbose=verbose)
     test_suite.interpret(model)
