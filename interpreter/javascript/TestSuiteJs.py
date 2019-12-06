@@ -61,7 +61,7 @@ class TestSuiteJs(TestSuite):
         )
         if response.exitcode == 0:
             response_dict = json.loads(response.stdout.decode("utf-8"))
-            print(response_dict['raw_text'])
+            self.print_log(response_dict['log'])
         else:
             print(response.stderr.decode("utf-8"))
 
@@ -92,3 +92,14 @@ class TestSuiteJs(TestSuite):
 
     def set_after_all(self, model):
         self.after_all = stringify_steps(model.after_all.aa_steps)
+
+    def print_log(self, log):
+        actor_table = log['actor_table']
+        if self.verbose and len(actor_table) > 0:
+            print()
+            print(self.instance_row.format('Instance', 'Class', 'Attributes'))
+            print(self.instance_row.format('-' * 15, '-' * 31, '-' * 127))
+            for actor in actor_table:
+                print(self.instance_row.format(str(actor[0]), str(actor[1]), str(actor[2])))
+            print()
+        print(log['raw_text'])

@@ -40,20 +40,16 @@ var verbose = process.argv[argType.verbose] === 'True';
 /* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  * Output Variables */
 var log = {
     raw_text: '',
-    tables: []
+    actor_table: null
 };
 var test_report = {};
 
-function print_if_verbose(msg, tb_lvl=0, is_table=false) {
+function print_if_verbose(msg, tb_lvl=0) {
     if (verbose) {
-        if (is_table) {
-            log.tables.push(msg);
-        } else {
-            for (var i = 0; i < tb_lvl; i++) {
-                log.raw_text += '\t';
-            }
-            log.raw_text += msg + tText.ENDC + '\n';
+        for (var i = 0; i < tb_lvl; i++) {
+            log.raw_text += '\t';
         }
+        log.raw_text += msg + tText.ENDC + '\n';
     }
 }
 
@@ -158,11 +154,7 @@ function style_assertion(is_ok, actor_name, attribute, expected_value, actual_va
 
 // Load actors by specifying modules, instantiating classes and setting attributes.
 var actors = {};
-var actor_tbl = {
-    actor_name: [],
-    actor_class: [],
-    instance: []
-};
+var actor_tbl = [];
 for (var actor_name in actor_definitions) {
     // instantiate classes
     var module = actor_definitions[actor_name][0];
@@ -178,11 +170,9 @@ for (var actor_name in actor_definitions) {
     }
 
     // append to actor table
-    actor_tbl.actor_name.push(actor_name);
-    actor_tbl.actor_class.push(actor_class);
-    actor_tbl.instance.push(JSON.stringify(actors[actor_name]));
+    actor_tbl.push([actor_name, module, actors[actor_name]]);
 }
-print_if_verbose(JSON.stringify(actor_tbl), true);
+log.actor_table = actor_tbl;
 
 // Run before all.
 print_if_verbose(tText.INFO + 'Running BeforeAll');
@@ -209,4 +199,4 @@ for (var test_name in tests) {
 process_steps(after_all);
 
 // Output
-console.log(JSON.stringify(log));
+console.log(JSON.stringify({log: log, test_report: test_report}));

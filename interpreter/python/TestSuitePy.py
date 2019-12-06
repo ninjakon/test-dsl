@@ -34,7 +34,7 @@ class TestSuitePy(TestSuite):
         self.print_if_verbose()
         if len(self.actor_definitions) > 0:
             self.print_if_verbose(self.instance_row.format('Instance', 'Class', 'Attributes'))
-            self.print_if_verbose(self.instance_row.format('-' * 15, '-' * 15, '-' * 63))
+            self.print_if_verbose(self.instance_row.format('-' * 15, '-' * 31, '-' * 127))
         for actor_name in self.actor_definitions:
             actor = self.actor_definitions[actor_name]
             actor_class = actor[0]
