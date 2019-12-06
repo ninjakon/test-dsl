@@ -37,12 +37,11 @@ var afters = JSON.parse(process.argv[argType.afters]);
 var after_all = JSON.parse(process.argv[argType.after_all]);
 var verbose = process.argv[argType.verbose] === 'True';
 
-/* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  * Output Variables */
+/* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  Log */
 var log = {
     raw_text: '',
     actor_table: null
 };
-var test_report = {};
 
 function print_if_verbose(msg, tb_lvl=0) {
     if (verbose) {
@@ -53,14 +52,26 @@ function print_if_verbose(msg, tb_lvl=0) {
     }
 }
 
+/* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *Test Report */
+var test_report = {
+    BA: [],
+    TC: 0,
+    CT: [null, []],
+    ST: [],
+    FT: [],
+    AA: []
+};
+
+add_error_fun = null;
+
 /* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  Step Processing */
 function process_steps(steps, is_ba=false) {
     const recursive_step = (i) => {
-        if (i < steps.length - 1) {
+        if (i < steps.length) {
             if (is_ba) {
                 print_if_verbose(tText.INFO + '"' + steps[i][0] + '" OK', tb_lvl=2);
             }
-            process_step(steps[i][0], steps[i][1], ++i, recursive_step);
+            process_step(steps[i][0], steps[i][1], i + 1, recursive_step);
         }
     };
     recursive_step(0);
@@ -87,6 +98,9 @@ function process_before_after_test(type, blocks, references) {
     if (references.length > 0) {
         print_if_verbose(tText.INFO + 'Running ' + type, tb_lvl=1);
     }
+    add_error_fun = function (l, e) {
+        test_report['CT'][1].push([tText.INFO + 'In ' + type + ' Clause: ' + l + tText.ENDC, e + tText.ENDC])
+    };
     for (var i = 0; i < references.length; i++) {
         process_steps(blocks[references[i]], true);
     }
@@ -101,7 +115,10 @@ function process_assert_step(args, i, callback) {
     actual_value = actor[attribute];
 
     is_ok = actual_value === expected_value;
-    message = style_assertion(is_ok, actor_name, attribute, expected_value, actual_value)
+    message = style_assertion(is_ok, actor_name, attribute, expected_value, actual_value);
+    if (!is_ok) {
+        add_error_fun('IDK', message + tText.ENDC);
+    }
     print_if_verbose(message, tb_lvl=2);
     callback(i);
 }
@@ -128,8 +145,7 @@ function process_call_step(args, i, callback) {
 }
 
 async function process_time_step(args, i, callback) {
-    await sleep(args[0]);
-    callback(i);
+    setTimeout(() => callback(i), args[0]);
 }
 
 /*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *Assertions */
@@ -152,6 +168,7 @@ function style_assertion(is_ok, actor_name, attribute, expected_value, actual_va
         color + suffix
 }
 
+/*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  * Actors */
 // Load actors by specifying modules, instantiating classes and setting attributes.
 var actors = {};
 var actor_tbl = [];
@@ -174,14 +191,17 @@ for (var actor_name in actor_definitions) {
 }
 log.actor_table = actor_tbl;
 
+/*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *Testing */
 // Run before all.
 print_if_verbose(tText.INFO + 'Running BeforeAll');
+add_error_fun = function(l, e) { test_report['BA'].push([l + tText.ENDC, e + tText.ENDC]) };
 process_steps(before_all, true);
 
 // Run tests.
 for (var test_name in tests) {
     log.raw_text += tText.INFO + 'Running ' + test_name + tText.ENDC + '\n';
     var test = tests[test_name];
+    test_report.CT = [test_name, []];
 
     // run befores
     process_before_after_test('Before', befores, test[testBlock.before]);
@@ -193,10 +213,23 @@ for (var test_name in tests) {
 
     // run afters
     process_before_after_test('After', afters, test[testBlock.after]);
+
+    // update test report
+    var current_test = test_report.CT[0];
+    var errors = test_report.CT[1];
+    if (errors.length === 0) {
+        test_report.ST.push(current_test);
+    } else {
+        test_report.FT.push(test_report.CT);
+    }
+    test_report.TC += 1;
+    test_report.CT = [null, []];
 }
 
 // Run after all.
-process_steps(after_all);
+print_if_verbose(tText.INFO + 'Running AfterAll');
+add_error_fun = function(l, e) { test_report['AA'].push([l + tText.ENDC, e + tText.ENDC]) };
+process_steps(after_all, true);
 
 // Output
 console.log(JSON.stringify({log: log, test_report: test_report}));

@@ -87,10 +87,10 @@ class TestSuitePy(TestSuite):
     def process_before_after_test(self, type, calls, steps):
         if len(calls) > 0:
             self.print_if_verbose(TText.INFO + 'Running ' + type + TText.ENDC, tb_lvl=1)
+        self.add_error_fun = lambda l, e: self.test_report['CT'][1]\
+            .append((TText.INFO + 'In ' + type + ' Clause: ' + l, e))
         for call in calls:
             self.print_if_verbose(TText.INFO + '"' + call.name + '" OK' + TText.ENDC, tb_lvl=2)
-            self.add_error_fun = lambda l, e: self.test_report['CT'][1].append(
-                (TText.INFO + 'In ' + type + ' Clause: ' + l, e))
             self.process_steps(steps[call.name], tb_lvl=3)
 
     def process_steps(self, steps, tb_lvl=0):

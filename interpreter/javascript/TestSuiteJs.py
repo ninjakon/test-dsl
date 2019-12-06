@@ -6,6 +6,10 @@ from interpreter.TestSuite import TestSuite
 from interpreter.javascript.json_helper import stringify, stringify_steps
 
 
+class JavascriptException(Exception):
+    pass
+
+
 class TestSuiteJs(TestSuite):
     def __init__(self, helper_path, verbose=False):
         super().__init__(verbose)
@@ -33,8 +37,9 @@ class TestSuiteJs(TestSuite):
         if response.exitcode == 0:
             response_dict = json.loads(response.stdout.decode("utf-8"))
             self.print_log(response_dict['log'])
+            self.test_report = response_dict['test_report']
         else:
-            print(response.stderr.decode("utf-8"))
+            raise JavascriptException(response.stderr.decode("utf-8"))
 
     def set_actor_definitions(self, model):
         for actor in model.actors:
