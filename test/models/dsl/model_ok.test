@@ -1,11 +1,11 @@
 // Actor definitions
-Actor PersonalAccount project-Account+Account {
+Actor PersonalAccount project-ok-Account+Account {
     Attribute allowNegBalance
     Attribute balance
     Attribute firstName
 }
 
-Actor CompanyAccount project-Account+Account {
+Actor CompanyAccount project-ok-Account+Account {
     Attribute balance
 }
 
