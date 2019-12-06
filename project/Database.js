@@ -1,5 +1,6 @@
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+    var start = new Date().getTime(), expire = start + ms;
+    while (new Date().getTime() < expire) { }
 }
 
 module.exports = class Database {
@@ -13,13 +14,13 @@ module.exports = class Database {
         }
     }
 
-    async connect() {
-        await sleep(500);
+    connect() {
+        sleep(500);
         this.connected = true;
     }
 
-    async disconnect() {
-        await sleep(500);
+    disconnect() {
+        sleep(500);
         this.connected = false;
     }
 

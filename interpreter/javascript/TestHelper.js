@@ -24,10 +24,6 @@ const tText = {
     ENDC: '\033[0m'
 };
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 /*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  Testing Arguments */
 var actor_definitions = JSON.parse(process.argv[argType.actor_definitions]);
 var before_all = JSON.parse(process.argv[argType.before_all]);
@@ -144,7 +140,7 @@ function process_call_step(args, i, callback) {
     callback(i);
 }
 
-async function process_time_step(args, i, callback) {
+function process_time_step(args, i, callback) {
     setTimeout(() => callback(i), args[0]);
 }
 
