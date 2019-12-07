@@ -1,5 +1,5 @@
 # Test DSL
-###### Language-independent Software Testing
+###### Defining language-independent Software Tests
 
 
 ## Outline
