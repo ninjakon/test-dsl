@@ -4,8 +4,6 @@ from interpreter.TText import TText
 
 
 class TestSuite(ABC):
-    instance_row = '| {:<15} |  {:<31} |  {:<127} |'
-
     def __init__(self, verbose=False):
         # test suite attributes
         self.verbose = verbose

@@ -5,6 +5,8 @@ from interpreter.TText import TText
 
 
 class TestSuitePy(TestSuite):
+    instance_row = '| {:<15} |  {:<31} |  {:<127} |'
+
     def run_all(self):
         self.setup_testing()
 

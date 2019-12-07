@@ -1,13 +1,18 @@
 import json
-
-from Naked.toolshed.shell import muterun_js
+import subprocess
 
 from interpreter.TestSuite import TestSuite
 from interpreter.javascript.json_helper import stringify, stringify_steps
 
 
-class JavascriptException(Exception):
-    pass
+def execute(cmd):
+    popen = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
+    for stdout_line in iter(popen.stdout.readline, ''):
+        yield stdout_line
+    popen.stdout.close()
+    exitcode = popen.wait()
+    if exitcode:
+        raise subprocess.CalledProcessError(exitcode, cmd)
 
 
 class TestSuiteJs(TestSuite):
@@ -20,26 +25,19 @@ class TestSuiteJs(TestSuite):
 
     def run_test(self, test_name, single=True):
         str_test = stringify(test_name)
-        single_test = { str_test: self.tests[str_test] }
+        single_test = {str_test: self.tests[str_test]}
         self.run_tests(single_test)
 
     def run_tests(self, test_list):
-        response = muterun_js(
-            self.helper_path,
-            '"' + json.dumps(self.actor_definitions) + '"' + ' '
-                                                             '"' + json.dumps(self.before_all) + '"' + ' ' +
-            '"' + json.dumps(self.befores) + '"' + ' ' +
-            '"' + json.dumps(test_list) + '"' + ' ' +
-            '"' + json.dumps(self.afters) + '"' + ' ' +
-            '"' + json.dumps(self.after_all) + '"' + ' ' +
-            '"' + str(self.verbose) + '"'
+        node_cmd = r'node {} "{}" "{}" "{}" "{}" "{}" "{}" "{}"'.format(
+            self.helper_path, json.dumps(self.actor_definitions), json.dumps(self.before_all), json.dumps(self.befores),
+            json.dumps(test_list), json.dumps(self.afters), json.dumps(self.after_all), str(self.verbose)
         )
-        if response.exitcode == 0:
-            response_dict = json.loads(response.stdout.decode("utf-8"))
-            self.print_log(response_dict['log'])
-            self.test_report = response_dict['test_report']
-        else:
-            raise JavascriptException(response.stderr.decode("utf-8"))
+        for line in execute(node_cmd):
+            if 'test_report' in line:
+                self.test_report = json.loads(line)['test_report']
+            else:
+                print(line, end='')
 
     def set_actor_definitions(self, model):
         for actor in model.actors:
@@ -68,14 +66,3 @@ class TestSuiteJs(TestSuite):
 
     def set_after_all(self, model):
         self.after_all = stringify_steps(model.after_all.aa_steps)
-
-    def print_log(self, log):
-        actor_table = log['actor_table']
-        if self.verbose and len(actor_table) > 0:
-            print()
-            print(self.instance_row.format('Instance', 'Class', 'Attributes'))
-            print(self.instance_row.format('-' * 15, '-' * 31, '-' * 127))
-            for actor in actor_table:
-                print(self.instance_row.format(str(actor[0]), str(actor[1]), str(actor[2])))
-            print()
-        print(log['raw_text'])

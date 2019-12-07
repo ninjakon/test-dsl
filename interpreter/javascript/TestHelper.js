@@ -25,17 +25,14 @@ const tText = {
 };
 
 /* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  Log */
-const log = {
-    raw_text: '',
-    actor_table: null
-};
-
 function print_if_verbose(msg, tb_lvl = 0) {
     if (verbose) {
+        output = '';
         for (let i = 0; i < tb_lvl; i++) {
-            log.raw_text += '\t';
+            output += '\t';
         }
-        log.raw_text += msg + tText.ENDC + '\n';
+        output += msg;
+        console.log(output + tText.ENDC);
     }
 }
 
@@ -63,7 +60,9 @@ const verbose = process.argv[argType.verbose] === 'True';
 /*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *Testing */
 function process_ba_aa(type, steps, callback) {
     print_if_verbose(tText.INFO + (type.localeCompare('BA') === 0 ? 'Running BeforeAll' : 'Running AfterAll'));
-    add_error_fun = (l, e) => { test_report[type].push([l + tText.ENDC, e + tText.ENDC]) };
+    add_error_fun = (l, e) => {
+        test_report[type].push([l + tText.ENDC, e + tText.ENDC])
+    };
     process_steps(steps, true, callback);
 }
 
@@ -88,7 +87,7 @@ function process_tests(test_names, callback) {
     const recursive_test = (i) => {
         if (i < test_names.length) {
             let test_name = test_names[i];
-            log.raw_text += tText.INFO + 'Running ' + test_name + tText.ENDC + '\n';
+            console.log(tText.INFO + 'Running ' + test_name + tText.ENDC);
             test_report.CT = [test_name, []];
             process_test(test_name, () => recursive_test(i + 1));
         } else {
@@ -221,6 +220,11 @@ function style_assertion(is_ok, actor_name, attribute, expected_value, actual_va
 
 /*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  * Actors */
 const actors = {};
+function ActorTblRow(instance, class_name, attributes) {
+    this.instance = instance;
+    this.class_name = class_name;
+    this.attributes = attributes;
+}
 const actor_tbl = [];
 for (let actor_name in actor_definitions) {
     /* check for IDE */
@@ -241,15 +245,17 @@ for (let actor_name in actor_definitions) {
     }
 
     /* append to actor table */
-    actor_tbl.push([actor_name, module, actors[actor_name]]);
+    actor_tbl.push(new ActorTblRow(actor_name, module, JSON.stringify(actors[actor_name])));
 }
-log.actor_table = actor_tbl;
+if (verbose) {
+    console.table(actor_tbl);
+}
 
 /*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  * Callback Hell*/
 process_ba_aa('BA', before_all, () => {
     process_tests(Object.keys(tests), () => {
         process_ba_aa('AA', after_all, () => {
-            console.log(JSON.stringify({log: log, test_report: test_report}));
+            console.log(JSON.stringify({test_report: test_report}));
         });
     });
 });
