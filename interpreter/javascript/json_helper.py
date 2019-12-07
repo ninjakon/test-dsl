@@ -3,8 +3,8 @@ def stringify(string):
     return '"' + str(string) + '"'
 
 
-def stringify_steps(steps):
-    return [stringify_step(s) for s in steps]
+def stringify_steps(steps, model):
+    return [(stringify_step(s), model._tx_parser.pos_to_linecol(s._tx_position)) for s in steps]
 
 
 def stringify_step(step):

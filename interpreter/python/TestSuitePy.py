@@ -135,7 +135,7 @@ class TestSuitePy(TestSuite):
                 self.style_assertion('Expected', 'but was', '!', TText.FAIL) \
                     .format(actor_name, attribute, expected_value, actual_value)
             self.add_error_fun(line_info, error_msg)
-            message = line_info + '\n' + error_msg
+            message = line_info + '\n' + '\t' * tb_lvl + error_msg
         else:
             message = \
                 TText.OK + 'Assertion OK: ' + TText.ENDC + \

@@ -27,7 +27,7 @@ const tText = {
 /* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  Log */
 function print_if_verbose(msg, tb_lvl = 0) {
     if (verbose) {
-        output = '';
+        let output = '';
         for (let i = 0; i < tb_lvl; i++) {
             output += '\t';
         }
@@ -131,7 +131,7 @@ function process_steps(steps, is_ba, callback) {
             if (is_ba) {
                 print_if_verbose(tText.INFO + '"' + steps[i][0] + '" OK', 2);
             }
-            process_step(steps[i][0], steps[i][1], () => recursive_step(i + 1));
+            process_step(steps[i], () => recursive_step(i + 1));
         } else {
             callback();
         }
@@ -139,10 +139,12 @@ function process_steps(steps, is_ba, callback) {
     recursive_step(0);
 }
 
-function process_step(type, args, callback) {
+function process_step(step, callback) {
+    const type = step[0][0];
+    const args = step[0][1];
     switch (type) {
         case 'AssertStep':
-            process_assert_step(args, callback);
+            process_assert_step(args, step[1], callback);
             break;
         case 'AssignStep':
             process_assign_step(args, callback);
@@ -157,7 +159,7 @@ function process_step(type, args, callback) {
 }
 
 /* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  * Specified Step Processing */
-function process_assert_step(args, callback) {
+function process_assert_step(args, position, callback) {
     const actor_name = args[0];
     const actor = actors[actor_name];
     const attribute = args[1];
@@ -165,9 +167,15 @@ function process_assert_step(args, callback) {
     const actual_value = actor[attribute];
 
     const is_ok = actual_value === expected_value;
-    const message = style_assertion(is_ok, actor_name, attribute, expected_value, actual_value);
+    let message = '';
     if (!is_ok) {
-        add_error_fun('IDK', message + tText.ENDC);
+        const line_info = tText.WARN + 'Assertion ' + tText.BOLD + 'ERROR' + tText.ENDC +
+            tText.WARN + ' in ' + tText.UL + 'line ' + position[0] + ' column ' + position[1] + ':' + tText.ENDC;
+        const error = style_assertion(is_ok, actor_name, attribute, expected_value, actual_value);
+        add_error_fun(line_info, error + tText.ENDC);
+        message = line_info + ' ' + error;
+    } else {
+        message = style_assertion(is_ok, actor_name, attribute, expected_value, actual_value);
     }
     print_if_verbose(message, 2);
     callback();
@@ -199,20 +207,18 @@ function process_time_step(args, callback) {
 
 /*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *Assertions */
 function style_assertion(is_ok, actor_name, attribute, expected_value, actual_value) {
-    let prefix, infix, suffix, color;
+    let infix, suffix, color;
     if (is_ok) {
-        prefix = tText.OK + 'Assertion OK: ' + tText.ENDC;
         infix = 'and was';
         suffix = '.';
         color = tText.OK;
 
     } else {
-        prefix = tText.WARN + 'Assertion ' + tText.BOLD + 'ERROR\n' + tText.ENDC;
         infix = 'but was';
         suffix = '!';
         color = tText.FAIL;
     }
-    return prefix + color + 'Expected ' + tText.BOLD + ` ${actor_name}[${attribute}]` + tText.ENDC +
+    return color + 'Expected' + tText.BOLD + ` ${actor_name}[${attribute}]` + tText.ENDC +
         color + ' == ' + tText.BOLD + `${expected_value} ` + tText.ENDC +
         color + infix + tText.BOLD + ` ${actual_value}` + tText.ENDC +
         color + suffix
