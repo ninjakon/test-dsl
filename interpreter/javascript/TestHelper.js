@@ -63,7 +63,7 @@ function process_ba_aa(type, steps, callback) {
     add_error_fun = (l, e) => {
         test_report[type].push([l + tText.ENDC, e + tText.ENDC])
     };
-    process_steps(steps, true, callback);
+    process_steps(steps, true, 1, callback);
 }
 
 function process_before_after_test(type, blocks, references, callback) {
@@ -75,7 +75,7 @@ function process_before_after_test(type, blocks, references, callback) {
     };
     const recursive_b_a = (i) => {
         if (i < references.length) {
-            process_steps(blocks[references[i]], true, () => recursive_b_a(i + 1));
+            process_steps(blocks[references[i]], true, 2, () => recursive_b_a(i + 1));
         } else {
             callback();
         }
@@ -102,7 +102,7 @@ function process_test(test_name, callback) {
     /* execute before test -> callback: tests */
     process_before_after_test('Before', befores, test[testBlock.before], () => {
         /* execute test -> callback: after test */
-        process_steps(test[testBlock.execute], false, () => {
+        process_steps(test[testBlock.execute], false, 2, () => {
             /* execute after test -> callback: next test */
             process_before_after_test('After', afters, test[testBlock.after], () => {
                 const errors = test_report.CT[1];
@@ -121,7 +121,7 @@ function process_test(test_name, callback) {
 }
 
 /* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  Step Processing */
-function process_steps(steps, is_ba, callback) {
+function process_steps(steps, is_ba, tb_lvl, callback) {
     if (!is_ba) {
         print_if_verbose(tText.INFO + 'Executing Test', 1);
         add_error_fun = (l, e) => test_report.CT[1].push([l + tText.ENDC, e + tText.ENDC]);
@@ -131,7 +131,7 @@ function process_steps(steps, is_ba, callback) {
             if (is_ba) {
                 print_if_verbose(tText.INFO + '"' + steps[i][0] + '" OK', 2);
             }
-            process_step(steps[i], () => recursive_step(i + 1));
+            process_step(steps[i], tb_lvl, () => recursive_step(i + 1));
         } else {
             callback();
         }
@@ -139,12 +139,12 @@ function process_steps(steps, is_ba, callback) {
     recursive_step(0);
 }
 
-function process_step(step, callback) {
+function process_step(step, tb_lvl, callback) {
     const type = step[0][0];
     const args = step[0][1];
     switch (type) {
         case 'AssertStep':
-            process_assert_step(args, step[1], callback);
+            process_assert_step(args, step[1], tb_lvl, callback);
             break;
         case 'AssignStep':
             process_assign_step(args, callback);
@@ -159,7 +159,7 @@ function process_step(step, callback) {
 }
 
 /* *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  * Specified Step Processing */
-function process_assert_step(args, position, callback) {
+function process_assert_step(args, position, tb_lvl=2, callback) {
     const actor_name = args[0];
     const actor = actors[actor_name];
     const attribute = args[1];
@@ -173,7 +173,11 @@ function process_assert_step(args, position, callback) {
             tText.WARN + ' in ' + tText.UL + 'line ' + position[0] + ' column ' + position[1] + ':' + tText.ENDC;
         const error = style_assertion(is_ok, actor_name, attribute, expected_value, actual_value);
         add_error_fun(line_info, error + tText.ENDC);
-        message = line_info + ' ' + error;
+        message = line_info + '\n';
+        for (var i = 0; i < tb_lvl; i++) {
+            message += '\t';
+        }
+        message += error;
     } else {
         message = style_assertion(is_ok, actor_name, attribute, expected_value, actual_value);
     }
