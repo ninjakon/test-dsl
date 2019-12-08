@@ -40,4 +40,20 @@ PyTest tests can be found in the test directory.
 - "test_interpreter.py" tests the interpretation of the test suite model by running several tests.
 
 
+## Example Program Calls
+
+```
+// python ok
+python3 test-dsl.py -t ./test/models/interpreter/interesting/model_everything_ok.test -v -a -l py
+
+// python not ok
+python3 test-dsl.py -t ./test/models/interpreter/interesting/model_everything_not_ok.test -v -a -l py
+
+// javascript ok
+python3 test-dsl.py -t ./test/models/interpreter/interesting/model_everything_ok.test -v -a -l js
+
+// javascript not ok
+python3 test-dsl.py -t ./test/models/interpreter/interesting/model_everything_not_ok.test -v -a -l js
+```
+
 ###### Created for the Advanced Software Engineering PS WS19/20
