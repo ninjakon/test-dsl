@@ -1,0 +1,22 @@
+// Actor definition
+Actor DB project-ok-Database+Database {
+    Attribute driver : "h2:mem:test"
+    Attribute cnctd : False
+}
+
+// Basic db connection test
+Test databaseConnection {
+    Execute {
+        Assert DB[cnctd] == False
+
+        DB.connect()
+        Sleep(1000)
+
+        Assert DB[cnctd] == True
+
+        DB.disconnect()
+        Sleep(1000)
+
+        Assert DB[cnctd] == False
+    }
+}

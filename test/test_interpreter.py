@@ -1,4 +1,8 @@
+from pytest import raises
+from subprocess import SubprocessError
+
 from test.utils import run_py, run_js
+
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #Interesting Tests
 
@@ -39,6 +43,25 @@ def test_everything_not_ok_js():
     assert 1 == len(test_suite_js.test_report['ST'])
     assert 2 == len(test_suite_js.test_report['FT'])
     assert 0 == len(test_suite_js.test_report['AA'])
+
+
+def test_non_existing_elements_py():
+    with raises(AttributeError):
+        run_py('interpreter/interesting/model_non_existing_attribute.test')
+    with raises(AttributeError):
+        run_py('interpreter/interesting/model_non_existing_method.test')
+    with raises(ModuleNotFoundError):
+        run_py('interpreter/interesting/model_non_existing_module.test')
+
+
+def test_non_existing_elements_js():
+    with raises(SubprocessError):
+        run_js('interpreter/interesting/model_non_existing_attribute.test')
+    with raises(SubprocessError):
+        run_js('interpreter/interesting/model_non_existing_method.test')
+    with raises(SubprocessError):
+        run_js('interpreter/interesting/model_non_existing_module.test')
+
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # Boring Tests
 

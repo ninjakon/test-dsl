@@ -44,6 +44,8 @@ class TestSuitePy(TestSuite):
 
             instance = actor_class()
             for attribute in attributes:
+                if attribute.name not in actor_class.__dict__:
+                    raise AttributeError('Non-existing attribute: {}[{}]!'.format(actor_name, attribute.name))
                 setattr(instance, attribute.name, attribute.value)
             self.actors[actor_name] = instance
 

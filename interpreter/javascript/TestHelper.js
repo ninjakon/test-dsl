@@ -251,6 +251,10 @@ for (let actor_name in actor_definitions) {
     const attributes = actor_definitions[actor_name][1];
     for (let i = 0; i < attributes.length; i++) {
         const attribute_name = attributes[i][0];
+        // check if attribute exists in class
+        if (!actors[actor_name].hasOwnProperty(attribute_name)) {
+            throw new Error('Non-existing attribute: ' + actor_name + '[' + attribute_name + ']!')
+        }
         actors[actor_name][attribute_name] = attributes[i][1];
     }
 
