@@ -5,7 +5,8 @@ Framework:
     (before=Before)?
     tests*=Test
     (after=After)?
-    (after_all=AfterAll)?;
+    (after_all=AfterAll)?
+;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  Actors */
 Actor:
