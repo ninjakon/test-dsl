@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  Framework */
 Framework:
-    actors*=Actor
+    (global_actors*=Actor)
     (before_all=BeforeAll)?
     (before=Before)?
     tests*=Test
@@ -48,6 +48,8 @@ BeforeBlock:
 
 Test:
     'Test' name=ID '{'
+        (actors*=Actor)
+
         ('Before {'
             befores*=[BeforeBlock]
         '}')?

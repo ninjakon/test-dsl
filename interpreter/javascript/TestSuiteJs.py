@@ -2,7 +2,7 @@ import json
 import subprocess
 
 from interpreter.TestSuite import TestSuite
-from interpreter.javascript.json_helper import stringify, stringify_steps
+from interpreter.javascript.json_helper import stringify, stringify_actor_definitions, stringify_steps
 
 
 def execute(cmd):
@@ -30,8 +30,9 @@ class TestSuiteJs(TestSuite):
 
     def run_tests(self, test_list):
         node_cmd = r'node {} "{}" "{}" "{}" "{}" "{}" "{}" "{}"'.format(
-            self.helper_path, json.dumps(self.actor_definitions), json.dumps(self.before_all), json.dumps(self.befores),
-            json.dumps(test_list), json.dumps(self.afters), json.dumps(self.after_all), str(self.verbose)
+            self.helper_path, json.dumps(self.global_actor_definitions), json.dumps(self.before_all),
+            json.dumps(self.befores), json.dumps(test_list), json.dumps(self.afters),
+            json.dumps(self.after_all), str(self.verbose)
         )
         for line in execute(node_cmd):
             if 'test_report' in line:
@@ -39,12 +40,8 @@ class TestSuiteJs(TestSuite):
             else:
                 print(line, end='')
 
-    def set_actor_definitions(self, model):
-        for actor in model.actors:
-            module = actor.path.replace('-', '/')
-            actor_class = '../../' + module + '.js'
-            self.actor_definitions[stringify(actor.name)] = \
-                (stringify(actor_class), [(stringify(a.name), stringify(a.value)) for a in actor.attributes])
+    def set_global_actor_definitions(self, model):
+        self.global_actor_definitions = stringify_actor_definitions(model.global_actors)
 
     def set_before_all(self, model):
         self.before_all = stringify_steps(model.before_all.ba_steps, self.model)
@@ -55,6 +52,7 @@ class TestSuiteJs(TestSuite):
     def set_tests(self, model):
         self.tests = {
             stringify(test.name): [
+                stringify_actor_definitions(test.actors),
                 [stringify(b.name) for b in test.befores],
                 stringify_steps(test.e_steps, self.model),
                 [stringify(a.name) for a in test.afters],

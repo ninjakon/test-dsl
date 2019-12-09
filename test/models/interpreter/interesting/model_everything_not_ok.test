@@ -1,14 +1,4 @@
-// Actor definitions
-Actor PersonalAccount project-not_ok-Account+Account {
-    Attribute allowNegBalance
-    Attribute balance
-    Attribute firstName
-}
-
-Actor CompanyAccount project-not_ok-Account+Account {
-    Attribute balance
-}
-
+// Global actor definitions
 Actor DB project-not_ok-Database+Database {
     Attribute driver : "h2:mem:test"
     Attribute connected : False
@@ -31,6 +21,12 @@ Before {
 
 // Assert basic database queries work
 Test databaseQueries {
+    Actor PersonalAccount project-not_ok-Account+Account {
+        Attribute allowNegBalance
+        Attribute balance
+        Attribute firstName
+    }
+
     Execute {
         PersonalAccount.loadFromDB(DB 1)
         Assert PersonalAccount[allowNegBalance] == False
@@ -45,6 +41,16 @@ Test databaseQueries {
 
 // Assert that if negative balance is allowed, balance can be less than zero
 Test allowNegativeBalance {
+    Actor PersonalAccount project-not_ok-Account+Account {
+        Attribute allowNegBalance
+        Attribute balance
+        Attribute firstName
+    }
+
+    Actor CompanyAccount project-not_ok-Account+Account {
+        Attribute balance
+    }
+
     Before {
         InitPersonalAccount
     }

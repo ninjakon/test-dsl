@@ -4,6 +4,17 @@ from interpreter.TestSuite import TestSuite
 from interpreter.TText import TText
 
 
+def get_actor_definitions(actors):
+    actor_definitions = {}
+    for actor in actors:
+        package = actor.path.replace('-', '.')
+        class_name = actor.class_name
+        module = __import__(package, fromlist=[class_name])
+        actor_class = getattr(module, actor.class_name)
+        actor_definitions[actor.name] = (actor_class, actor.attributes)
+    return actor_definitions
+
+
 class TestSuitePy(TestSuite):
     instance_row = '| {:<15} |  {:<31} |  {:<63} |'
 
@@ -16,7 +27,7 @@ class TestSuitePy(TestSuite):
         self.teardown_testing()
 
     def setup_testing(self):
-        self.instantiate_actors()
+        self.instantiate_actors(self.global_actor_definitions)
 
         self.test_report.clear()
         self.test_report['BA'] = []             # before all errors
@@ -32,13 +43,13 @@ class TestSuitePy(TestSuite):
         self.add_error_fun = lambda l, e : self.test_report['BA'].append((l, e))
         self.process_steps(self.before_all, tb_lvl=1)
 
-    def instantiate_actors(self):
+    def instantiate_actors(self, actor_definitions):
         self.print_if_verbose()
-        if len(self.actor_definitions) > 0:
+        if len(actor_definitions) > 0:
             self.print_if_verbose(self.instance_row.format('Instance', 'Class', 'Attributes'))
             self.print_if_verbose(self.instance_row.format('-' * 15, '-' * 31, '-' * 61))
-        for actor_name in self.actor_definitions:
-            actor = self.actor_definitions[actor_name]
+        for actor_name in actor_definitions:
+            actor = actor_definitions[actor_name]
             actor_class = actor[0]
             attributes = actor[1]
 
@@ -67,8 +78,11 @@ class TestSuitePy(TestSuite):
 
         # get test name
         print(TText.INFO + 'Running Test "' + test_name + '"' + TText.ENDC)
-        test = self.tests[test_name]
+        test, local_actor_definitions = self.tests[test_name]
         self.set_current_test(test_name)
+
+        # set local actors
+        self.instantiate_actors(local_actor_definitions)
 
         # process all before steps
         self.process_before_after_test('Before', test.befores, self.befores)
@@ -81,6 +95,10 @@ class TestSuitePy(TestSuite):
 
         # process all after steps
         self.process_before_after_test('After', test.afters, self.afters)
+
+        # unset local actors
+        for actor_name in local_actor_definitions.keys():
+            self.actors.pop(actor_name)
 
         # update test report
         self.update_test_report()
@@ -163,13 +181,8 @@ class TestSuitePy(TestSuite):
         self.test_report['TC'] += 1
         self.test_report['CT'] = (None, [])
 
-    def set_actor_definitions(self, model):
-        for actor in model.actors:
-            package = actor.path.replace('-', '.')
-            class_name = actor.class_name
-            module =  __import__(package, fromlist=[class_name])
-            actor_class = getattr(module, actor.class_name)
-            self.actor_definitions[actor.name] = (actor_class, actor.attributes)
+    def set_global_actor_definitions(self, model):
+        self.global_actor_definitions = get_actor_definitions(model.global_actors)
 
     def set_before_all(self, model):
         self.before_all = model.before_all.ba_steps
@@ -178,7 +191,7 @@ class TestSuitePy(TestSuite):
         self.befores = {b_block.name: b_block.b_steps for b_block in model.before.b_blocks}
 
     def set_tests(self, model):
-        self.tests = {test.name: test for test in model.tests}
+        self.tests = {test.name: (test, get_actor_definitions(test.actors)) for test in model.tests}
 
     def set_afters(self, model):
         self.afters = {a_block.name: a_block.a_steps for a_block in model.after.a_blocks}

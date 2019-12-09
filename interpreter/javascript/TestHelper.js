@@ -1,5 +1,5 @@
 const argType = {
-    actor_definitions: 2,
+    global_actor_definitions: 2,
     before_all: 3,
     befores: 4,
     tests: 5,
@@ -9,9 +9,10 @@ const argType = {
 };
 
 const testBlock = {
-    before: 0,
-    execute: 1,
-    after: 2
+    actors: 0,
+    before: 1,
+    execute: 2,
+    after: 3
 };
 
 const tText = {
@@ -49,7 +50,7 @@ const test_report = {
 let add_error_fun = null;
 
 /*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  Testing Arguments */
-const actor_definitions = JSON.parse(process.argv[argType.actor_definitions]);
+const global_actor_definitions = JSON.parse(process.argv[argType.global_actor_definitions]);
 const before_all = JSON.parse(process.argv[argType.before_all]);
 const befores = JSON.parse(process.argv[argType.befores]);
 const tests = JSON.parse(process.argv[argType.tests]);
@@ -99,22 +100,31 @@ function process_tests(test_names, callback) {
 
 function process_test(test_name, callback) {
     const test = tests[test_name];
-    /* execute before test -> callback: tests */
-    process_before_after_test('Before', befores, test[testBlock.before], () => {
-        /* execute test -> callback: after test */
-        process_steps(test[testBlock.execute], false, 2, () => {
-            /* execute after test -> callback: next test */
-            process_before_after_test('After', afters, test[testBlock.after], () => {
-                const errors = test_report.CT[1];
-                if (errors.length === 0) {
-                    test_report.ST.push(test_report.CT[0]);
-                } else {
-                    test_report.FT.push(test_report.CT);
-                }
-                test_report.TC += 1;
-                test_report.CT = [null, []];
+    /* instantiate local actors -> callback: before test */
+    instantiate_actors(test[testBlock.actors], () => {
+        /* execute before test -> callback: tests */
+        process_before_after_test('Before', befores, test[testBlock.before], () => {
+            /* execute test -> callback: after test */
+            process_steps(test[testBlock.execute], false, 2, () => {
+                /* execute after test -> callback: next test */
+                process_before_after_test('After', afters, test[testBlock.after], () => {
+                    // unset local actors
+                    for (let actor in test[testBlock.actors]) {
+                        delete actors[actor];
+                    }
 
-                callback();
+                    // update test report
+                    const errors = test_report.CT[1];
+                    if (errors.length === 0) {
+                        test_report.ST.push(test_report.CT[0]);
+                    } else {
+                        test_report.FT.push(test_report.CT);
+                    }
+                    test_report.TC += 1;
+                    test_report.CT = [null, []];
+
+                    callback();
+                });
             });
         });
     });
@@ -174,7 +184,7 @@ function process_assert_step(args, position, tb_lvl=2, callback) {
         const error = style_assertion(is_ok, actor_name, attribute, expected_value, actual_value);
         add_error_fun(line_info, error + tText.ENDC);
         message = line_info + '\n';
-        for (var i = 0; i < tb_lvl; i++) {
+        for (let i = 0; i < tb_lvl; i++) {
             message += '\t';
         }
         message += error;
@@ -230,46 +240,55 @@ function style_assertion(is_ok, actor_name, attribute, expected_value, actual_va
 
 /*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  * Actors */
 const actors = {};
-function ActorTblRow(instance, class_name, attributes) {
-    this.instance = instance;
-    this.class_name = class_name;
-    this.attributes = attributes;
-}
-const actor_tbl = [];
-for (let actor_name in actor_definitions) {
-    /* check for IDE */
-    if (!actor_definitions.hasOwnProperty(actor_name)) {
-        break;
+
+function instantiate_actors(actor_definitions, callback) {
+    function ActorTblRow(instance, class_name, attributes) {
+        this.instance = instance;
+        this.class_name = class_name;
+        this.attributes = attributes;
     }
+    const actor_tbl = [];
 
-    /* instantiate classes */
-    const module = actor_definitions[actor_name][0];
-    const actor_class = require(module);
-    actors[actor_name] = new actor_class();
-
-    /* set pre-defined attributes */
-    const attributes = actor_definitions[actor_name][1];
-    for (let i = 0; i < attributes.length; i++) {
-        const attribute_name = attributes[i][0];
-        // check if attribute exists in class
-        if (!actors[actor_name].hasOwnProperty(attribute_name)) {
-            throw new Error('Non-existing attribute: ' + actor_name + '[' + attribute_name + ']!')
+    for (let actor_name in actor_definitions) {
+        /* check for IDE */
+        if (!actor_definitions.hasOwnProperty(actor_name)) {
+            break;
         }
-        actors[actor_name][attribute_name] = attributes[i][1];
+
+        /* instantiate classes */
+        const module = actor_definitions[actor_name][0];
+        const actor_class = require(module);
+        actors[actor_name] = new actor_class();
+
+        /* set pre-defined attributes */
+        const attributes = actor_definitions[actor_name][1];
+        for (let i = 0; i < attributes.length; i++) {
+            const attribute_name = attributes[i][0];
+            // check if attribute exists in class
+            if (!actors[actor_name].hasOwnProperty(attribute_name)) {
+                throw new Error('Non-existing attribute: ' + actor_name + '[' + attribute_name + ']!')
+            }
+            actors[actor_name][attribute_name] = attributes[i][1];
+        }
+
+        /* append to actor table */
+        actor_tbl.push(new ActorTblRow(actor_name, module, JSON.stringify(actors[actor_name])));
     }
 
-    /* append to actor table */
-    actor_tbl.push(new ActorTblRow(actor_name, module, JSON.stringify(actors[actor_name])));
-}
-if (verbose) {
-    console.table(actor_tbl);
+    if (verbose) {
+        console.table(actor_tbl);
+    }
+
+    callback();
 }
 
 /*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  * Callback Hell*/
-process_ba_aa('BA', before_all, () => {
-    process_tests(Object.keys(tests), () => {
-        process_ba_aa('AA', after_all, () => {
-            console.log(JSON.stringify({test_report: test_report}));
+instantiate_actors(global_actor_definitions, () => {
+    process_ba_aa('BA', before_all, () => {
+        process_tests(Object.keys(tests), () => {
+            process_ba_aa('AA', after_all, () => {
+                console.log(JSON.stringify({test_report: test_report}));
+            });
         });
     });
 });

@@ -29,6 +29,10 @@ Test allowNegativeBalance {
         Assert PersonalAccount[balance] == -20
         Assert CompanyAccount[balance] == 640
     }
+
+    After {
+        CheckPersonalAccount
+    }
 }
 
 After {

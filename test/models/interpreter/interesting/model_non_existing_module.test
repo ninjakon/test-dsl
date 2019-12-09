@@ -1,11 +1,10 @@
-// Actor definition
-Actor DB project-ok-Dbase+Dbase {
-    Attribute driver : "h2:mem:test"
-    Attribute connected : False
-}
-
 // Basic db connection test
 Test databaseConnection {
+    Actor DB project-ok-Dbase+Dbase {
+        Attribute driver : "h2:mem:test"
+        Attribute connected : False
+    }
+
     Execute {
         Assert DB[connected] == False
 

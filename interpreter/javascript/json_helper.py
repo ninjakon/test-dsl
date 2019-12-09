@@ -7,6 +7,16 @@ def stringify_steps(steps, model):
     return [(stringify_step(s), model._tx_parser.pos_to_linecol(s._tx_position)) for s in steps]
 
 
+def stringify_actor_definitions(actors):
+    actor_definitions = {}
+    for actor in actors:
+        module = actor.path.replace('-', '/')
+        actor_class = '../../' + module + '.js'
+        actor_definitions[stringify(actor.name)] = \
+            (stringify(actor_class), [(stringify(a.name), stringify(a.value)) for a in actor.attributes])
+    return actor_definitions
+
+
 def stringify_step(step):
     step_type = step.__class__.__name__
     step_vars = []

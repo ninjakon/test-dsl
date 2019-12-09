@@ -12,7 +12,7 @@ class TestSuite(ABC):
         self.add_error_fun = None
 
         # test elements
-        self.actor_definitions = {}
+        self.global_actor_definitions = {}
         self.actors = {}
         self.before_all = []
         self.befores = {}
@@ -65,7 +65,7 @@ class TestSuite(ABC):
         self.model = model
 
         # register actors (only definitions not instances)
-        self.set_actor_definitions(model)
+        self.set_global_actor_definitions(model)
 
         # register before all steps
         if model.before_all:
@@ -95,7 +95,7 @@ class TestSuite(ABC):
         pass
 
     @abstractmethod
-    def set_actor_definitions(self, model):
+    def set_global_actor_definitions(self, model):
         pass
 
     @abstractmethod
